@@ -103,8 +103,8 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-72 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/30 shadow-lg z-40 px-gutter-desktop flex items-center justify-between select-none">
-      <div className="flex items-center gap-3 w-72 min-w-0">
+    <div className="fixed bottom-0 left-72 max-[1100px]:left-20 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/30 shadow-lg z-40 px-gutter-desktop max-[1100px]:px-4 flex items-center justify-between gap-3 max-[1100px]:gap-2 select-none">
+      <div className="flex items-center gap-3 w-72 max-[1100px]:w-[30%] min-w-0">
         <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shadow-sm shrink-0">
           <Radio className={`w-6 h-6 text-primary-fixed ${isPlaying ? 'animate-pulse' : ''}`} />
         </div>
@@ -118,7 +118,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-1.5 flex-1 max-w-xl px-4">
+      <div className="flex min-w-0 flex-col items-center gap-1.5 flex-1 max-w-xl px-4 max-[1100px]:px-1">
         <div className="flex items-center gap-4">
           <button onClick={() => seek(-10)} disabled={!currentTrack} title="Mundur 10 detik" className="text-on-surface-variant hover:text-primary disabled:opacity-40">
             <SkipBack className="w-4 h-4" />
@@ -160,7 +160,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 w-60 justify-end">
+      <div className="flex items-center gap-2.5 w-60 max-[1100px]:w-auto justify-end">
         <button onClick={toggleMute} aria-label={isMuted || volume === 0 ? 'Nyalakan volume' : 'Bisukan audio'} className="text-on-surface-variant hover:text-primary">
           {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-error" /> : <Volume2 className="w-4 h-4" />}
         </button>
@@ -174,9 +174,9 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
             setIsMuted(false);
             onVolumeChange(Number(event.target.value));
           }}
-          className="w-24 h-1.5 bg-surface-container rounded-lg accent-primary cursor-pointer"
+          className="w-24 h-1.5 bg-surface-container rounded-lg accent-primary cursor-pointer max-[900px]:hidden"
         />
-        <span className="text-sm font-mono font-bold text-primary w-10">{volume}%</span>
+        <span className="text-sm font-mono font-bold text-primary w-10 max-[900px]:hidden">{volume}%</span>
       </div>
 
       <audio

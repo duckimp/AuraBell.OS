@@ -471,7 +471,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <div className="pl-72 flex-1 flex flex-col min-w-0">
+      <div className="pl-72 max-[1100px]:pl-20 flex-1 flex flex-col min-w-0">
         {/* Top Header */}
         <Header
           academicYear={appData.settings.academic_year}
@@ -483,7 +483,7 @@ export function App() {
         />
 
         {/* View Routed by Tab */}
-        <main className="pt-20 px-gutter-desktop min-h-[calc(100vh-80px)]">
+        <main className="pt-20 px-4 xl:px-gutter-desktop min-h-[calc(100vh-80px)]">
           <Suspense
             fallback={
               <div className="flex items-center justify-center py-16 text-sm font-semibold text-primary">

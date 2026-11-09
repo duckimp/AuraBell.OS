@@ -488,20 +488,22 @@ export const TtsView: React.FC<TtsViewProps> = ({
             </div>
 
             {/* Audio Wave Visualizer Simulation */}
-            <div className="h-28 bg-surface-container-low rounded-xl flex items-center justify-center gap-1.5 px-4 overflow-hidden relative">
-              {[40, 65, 30, 85, 95, 45, 75, 100, 60, 80, 50, 70, 90, 40, 60].map((h, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: isBroadcasting ? `${Math.max(15, (h * Math.random()) + 20)}%` : '15%',
-                    transition: 'height 0.15s ease-in-out',
-                  }}
-                  className={`w-2 rounded-full ${
-                    isBroadcasting ? 'bg-primary' : 'bg-outline-variant/40'
-                  }`}
-                />
-              ))}
-              <div className="absolute bottom-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+            <div className="h-28 bg-surface-container-low rounded-xl overflow-hidden relative">
+              <div className="absolute inset-x-4 top-4 bottom-8 flex items-end justify-center gap-1.5">
+                {[40, 65, 30, 85, 95, 45, 75, 100, 60, 80, 50, 70, 90, 40, 60].map((h, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: isBroadcasting ? `${h}%` : `${15 + (i % 3) * 4}%`,
+                      animationDelay: `${i * 70}ms`,
+                    }}
+                    className={`tts-visualizer-bar w-2 rounded-full ${
+                      isBroadcasting ? 'tts-visualizer-bar-active bg-primary' : 'tts-visualizer-bar-standby bg-outline-variant/40'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="absolute inset-x-0 bottom-2 text-center text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
                 {isBroadcasting ? 'Gelombang Suara Aktif' : 'Visualizer Standby'}
               </div>
             </div>

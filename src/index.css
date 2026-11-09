@@ -46,6 +46,46 @@
   animation: wiggle 1s ease-in-out infinite;
 }
 
+@keyframes tts-visualizer-standby {
+  0%, 100% {
+    transform: scaleY(0.55);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes tts-visualizer-active {
+  0%, 100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.tts-visualizer-bar {
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+}
+
+.tts-visualizer-bar-standby {
+  animation: tts-visualizer-standby 1.6s ease-in-out infinite;
+}
+
+.tts-visualizer-bar-active {
+  animation: tts-visualizer-active 0.72s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tts-visualizer-bar {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

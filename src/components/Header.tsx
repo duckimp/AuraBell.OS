@@ -44,12 +44,12 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_6px_rgba(0,0,0,0.05)] border-b border-outline-variant/20 z-40 px-6 flex items-center justify-between select-none">
+    <header className="fixed top-0 left-72 max-[1100px]:left-20 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_6px_rgba(0,0,0,0.05)] border-b border-outline-variant/20 z-40 px-6 max-[1100px]:px-3 flex items-center justify-between gap-2 select-none">
       {/* Left Info */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3 max-[1100px]:gap-2">
         {/* Academic Year + School badge */}
-        <div className="flex flex-col bg-surface-container-low px-3 py-1.5 rounded-lg">
-          <span className="text-sm font-semibold text-on-surface">{schoolName}</span>
+        <div className="flex min-w-0 flex-col bg-surface-container-low px-3 py-1.5 rounded-lg max-[1100px]:px-2">
+          <span className="max-[1100px]:hidden text-sm font-semibold text-on-surface">{schoolName}</span>
           <span className="text-xs text-on-surface-variant">{academicYear}</span>
         </div>
 
@@ -70,21 +70,23 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
               </span>
               <CheckCircle2 className="w-4 h-4" />
-              <span>Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
+              <span className="max-[1100px]:hidden">Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
+              <span className="hidden max-[1100px]:inline">Otomatis</span>
             </>
           ) : (
             <>
               <Power className="w-3.5 h-3.5" />
-              <span>Bel otomatis mati</span>
+              <span className="max-[1100px]:hidden">Bel otomatis mati</span>
+              <span className="hidden max-[1100px]:inline">Mati</span>
             </>
           )}
         </button>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3 max-[1100px]:gap-2">
         {/* Real-time Clock */}
-        <div className="hidden md:flex flex-col text-right items-end pr-3 border-r border-outline-variant/30">
+        <div className="hidden min-[1101px]:flex flex-col text-right items-end pr-3 border-r border-outline-variant/30">
           <div className="flex items-center gap-1.5 font-mono font-bold text-[15px] text-on-surface tabular-nums tracking-wider">
             <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
             <span>{timeStr}</span>
@@ -96,11 +98,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Emergency Button */}
         <button
           onClick={onEmergencyTrigger}
+          title="Darurat: Bunyikan Bel"
           className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95"
           type="button"
         >
           <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-          <span>Darurat: Bunyikan Bel</span>
+          <span className="max-[1100px]:hidden">Darurat: Bunyikan Bel</span>
         </button>
 
       </div>

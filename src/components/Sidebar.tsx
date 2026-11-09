@@ -62,14 +62,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const mode = modeLabel[activeMode] || modeLabel['reguler'];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.06)] z-50 flex flex-col justify-between overflow-y-auto border-r border-outline-variant/20 select-none">
-      <div className="p-space-lg flex flex-col gap-space-md">
+    <aside className="fixed left-0 top-0 h-full w-72 max-[1100px]:w-20 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.06)] z-50 flex flex-col justify-between overflow-y-auto border-r border-outline-variant/20 select-none">
+      <div className="p-space-lg max-[1100px]:p-3 flex flex-col gap-space-md max-[1100px]:gap-3">
         {/* App Branding */}
-        <div className="flex items-center gap-space-sm pb-4 border-b border-surface-container-low">
+        <div className="flex items-center gap-space-sm pb-4 border-b border-surface-container-low max-[1100px]:justify-center max-[1100px]:pb-3">
           <div className="w-11 h-11 rounded-xl bg-primary-container flex items-center justify-center shadow-sm ring-2 ring-primary/10 shrink-0">
             <Bell className="w-6 h-6 text-primary-fixed" strokeWidth={2.5} />
           </div>
-          <div className="flex flex-col min-w-0">
+          <div className="flex flex-col min-w-0 max-[1100px]:hidden">
             <div className="flex items-center gap-1.5">
               <span className="font-headline font-extrabold text-[17px] text-primary tracking-tight leading-tight">
                 AuraBell<span className="text-on-surface-variant font-semibold">.OS</span>
@@ -83,15 +83,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Current Active Mode Tag */}
-        <div className="bg-surface-container-low px-3 py-2.5 rounded-xl flex items-center justify-between">
-          <span className="text-sm font-semibold text-on-surface">Mode jadwal</span>
-          <span className={`font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-[11px] shadow-sm ${mode.color}`}>
+        <div title={`Mode jadwal: ${mode.label}`} className="bg-surface-container-low px-3 py-2.5 rounded-xl flex items-center justify-between max-[1100px]:justify-center max-[1100px]:px-1">
+          <span className="text-sm font-semibold text-on-surface max-[1100px]:hidden">Mode jadwal</span>
+          <span className={`font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-[11px] shadow-sm ${mode.color} max-[1100px]:px-1.5`}>
             {mode.label}
           </span>
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex flex-col gap-1 pt-1">
+        <nav className="flex flex-col gap-1 pt-1 max-[1100px]:items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -99,11 +99,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => setCurrentTab(item.id)}
+                title={item.label}
+                aria-label={item.label}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-lg text-label-lg transition-all duration-150 text-left cursor-pointer group ${
                   isActive
                     ? 'bg-primary-container text-on-primary shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
+                } max-[1100px]:w-12 max-[1100px]:justify-center max-[1100px]:px-1`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   isActive
@@ -112,13 +114,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}>
                   <Icon className="w-4 h-4" strokeWidth={2} />
                 </div>
-                <div className="flex min-w-0 items-center">
+                <div className="flex min-w-0 items-center max-[1100px]:hidden">
                   <span className={`text-sm font-semibold leading-tight ${isActive ? 'text-on-primary' : ''}`}>
                     {item.label}
                   </span>
                 </div>
                 {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-fixed opacity-80" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-fixed opacity-80 max-[1100px]:hidden" />
                 )}
               </button>
             );
@@ -127,14 +129,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Speaker / Hardware Status Widget */}
-      <div className="p-4 m-4 mt-0">
+      <div className="p-4 m-4 mt-0 max-[1100px]:p-2 max-[1100px]:m-2">
         <div className="bg-surface-container-low rounded-xl p-3 flex flex-col gap-2 border border-outline-variant/20">
-          <div className="flex items-center justify-between">
+          <div title={`Volume master: ${masterVolume}%`} className="flex items-center justify-between max-[1100px]:justify-center">
             <span className="text-sm text-on-surface font-semibold flex items-center gap-1.5">
               <Volume2 className="w-3.5 h-3.5 text-primary" />
-              Volume master
+              <span className="max-[1100px]:hidden">Volume master</span>
             </span>
-            <span className="font-mono font-bold text-sm text-primary">{masterVolume}%</span>
+            <span className="font-mono font-bold text-sm text-primary max-[1100px]:hidden">{masterVolume}%</span>
           </div>
           <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${masterVolume}%` }} />
@@ -142,17 +144,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isTauri() && (
             <button
               onClick={onToggleAutoStart}
+              title={`Mulai saat login: ${autoStartEnabled ? 'Aktif' : 'Mati'}`}
               className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20 text-sm font-semibold text-on-surface-variant hover:text-primary"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 max-[1100px]:justify-center">
                 <Power className="w-4 h-4" />
-                Mulai saat login
+                <span className="max-[1100px]:hidden">Mulai saat login</span>
               </span>
-              <span>{autoStartEnabled ? 'Aktif' : 'Mati'}</span>
+              <span className="max-[1100px]:hidden">{autoStartEnabled ? 'Aktif' : 'Mati'}</span>
             </button>
           )}
         </div>
-        <div className="mt-4 border-t border-outline-variant/20 pt-3 text-center">
+        <div className="mt-4 border-t border-outline-variant/20 pt-3 text-center max-[1100px]:hidden">
           <span className="text-xs text-on-surface-variant">Dibuat oleh </span>
           <a
             href="https://github.com/duckimp"
