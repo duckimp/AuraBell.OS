@@ -3,6 +3,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { isTauri } from './tauriBridge';
 
 export type VoiceGender = 'female' | 'male';
+export type TtsEngine = 'system' | 'piper';
 
 const FEMALE_VOICE_NAMES = /female|woman|girl|gadis|zira|siti|amelia|putri|ayu/i;
 const MALE_VOICE_NAMES = /\bmale\b|\bman\b|\bboy\b|ardi|dimas|budi|andika|joko/i;
@@ -288,10 +289,11 @@ class AudioEngine {
       onStart?: () => void;
       onEnd?: () => void;
       onError?: (message: string) => void;
+      onUnavailable?: (message: string) => void;
     }
-  ) {
+  ): void {
     if (!('speechSynthesis' in window)) {
-      options.onError?.('Browser / WebView ini tidak mendukung Text-to-Speech Web API.');
+      options.onUnavailable?.('Browser / WebView ini tidak mendukung Text-to-Speech Web API.');
       return;
     }
 
@@ -315,7 +317,9 @@ class AudioEngine {
         : Math.min(options.pitch, 0.9);
     }
 
+    let hasStarted = false;
     utterance.onstart = () => {
+      hasStarted = true;
       if (requestId === this.speechRequestId) options.onStart?.();
     };
     utterance.onend = () => {
@@ -323,7 +327,12 @@ class AudioEngine {
     };
     utterance.onerror = (event) => {
       if (requestId === this.speechRequestId) {
-        options.onError?.(`Text-to-Speech gagal: ${event.error}`);
+        const message = `Text-to-Speech gagal: ${event.error}`;
+        if (!hasStarted && options.onUnavailable) {
+          options.onUnavailable(message);
+        } else {
+          options.onError?.(message);
+        }
       }
     };
     window.speechSynthesis.speak(utterance);
@@ -398,6 +407,7 @@ class AudioEngine {
       rate?: number;
       volume?: number;
       gender?: VoiceGender;
+      engine?: TtsEngine;
       chime?: 'bank' | 'airport' | 'dingdong' | 'none';
       onStart?: () => void;
       onEnd?: () => void;
@@ -409,6 +419,7 @@ class AudioEngine {
       rate = 0.95,
       volume = 1.0,
       gender,
+      engine,
       chime = 'bank',
       onStart,
       onEnd,
@@ -422,10 +433,25 @@ class AudioEngine {
     const executeSpeech = () => {
       if (requestId !== this.speechRequestId) return;
       const speechOptions = { pitch, rate, volume, gender, onStart, onEnd, onError };
-      if (isTauri()) {
+      const selectedEngine = engine ?? (isTauri() ? 'piper' : 'system');
+      if (selectedEngine === 'piper' && isTauri()) {
         void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
+      } else if (selectedEngine === 'system') {
+        this.speakWithWebSpeech(text, requestId, {
+          ...speechOptions,
+          onUnavailable: (message) => {
+            if (isTauri()) {
+              void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
+            } else {
+              onError?.(message);
+            }
+          },
+        });
       } else {
-        this.speakWithWebSpeech(text, requestId, speechOptions);
+        this.speakWithWebSpeech(text, requestId, {
+          ...speechOptions,
+          onUnavailable: onError,
+        });
       }
     };
 

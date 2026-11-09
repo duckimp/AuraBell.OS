@@ -15,7 +15,13 @@ import {
   Radio
 } from 'lucide-react';
 import { AppData, TargetCategory, TtsCallRecord } from '../types';
-import { audioEngine, findIndonesianVoice, getIndonesianVoices, VoiceGender } from '../services/audioEngine';
+import {
+  audioEngine,
+  findIndonesianVoice,
+  getIndonesianVoices,
+  TtsEngine,
+  VoiceGender,
+} from '../services/audioEngine';
 import { isTauri } from '../services/tauriBridge';
 
 interface TtsViewProps {
@@ -24,6 +30,8 @@ interface TtsViewProps {
   onClearHistory: () => void;
   voiceGender: VoiceGender;
   onVoiceGenderChange: (gender: VoiceGender) => void;
+  ttsEngine: TtsEngine;
+  onTtsEngineChange: (engine: TtsEngine) => void;
 }
 
 export const TtsView: React.FC<TtsViewProps> = ({
@@ -32,6 +40,8 @@ export const TtsView: React.FC<TtsViewProps> = ({
   onClearHistory,
   voiceGender,
   onVoiceGenderChange,
+  ttsEngine,
+  onTtsEngineChange,
 }) => {
   const [targetType, setTargetType] = useState<TargetCategory>('Siswa');
   const [targetName, setTargetName] = useState('');
@@ -51,17 +61,13 @@ export const TtsView: React.FC<TtsViewProps> = ({
   const isOfflineDesktop = isTauri();
 
   useEffect(() => {
-    if (isOfflineDesktop) {
-      setAvailableVoices([]);
-      return;
-    }
     const updateVoices = () => setAvailableVoices(getIndonesianVoices());
     updateVoices();
     window.speechSynthesis?.addEventListener('voiceschanged', updateVoices);
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', updateVoices);
-  }, [isOfflineDesktop]);
+  }, []);
 
-  const selectedVoice = isOfflineDesktop ? undefined : findIndonesianVoice(voiceGender);
+  const selectedVoice = findIndonesianVoice(voiceGender);
 
   // Update synthesized preview text dynamically
   useEffect(() => {
@@ -110,6 +116,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
       rate,
       volume,
       gender: voiceGender,
+      engine: ttsEngine,
       chime: chimePreset,
       onStart: () => setIsBroadcasting(true),
       onEnd: () => {
@@ -161,6 +168,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
       rate: 0.95,
       volume: 1.0,
       gender: voiceGender,
+      engine: ttsEngine,
       chime: 'bank',
       onStart: () => setIsBroadcasting(true),
       onEnd: () => setIsBroadcasting(false),
@@ -426,23 +434,37 @@ export const TtsView: React.FC<TtsViewProps> = ({
                 </h3>
               </div>
               <span className="text-[11px] text-on-surface-variant font-medium">
-                {isOfflineDesktop ? 'Engine: Piper Offline' : 'Engine: Web Speech'}
+                {isOfflineDesktop
+                  ? `Engine: ${ttsEngine === 'system' ? 'Suara Sistem' : 'Piper Offline'}`
+                  : 'Engine: Web Speech'}
               </span>
             </div>
 
             <div className="flex flex-col gap-1">
-              {isOfflineDesktop ? (
-                <div className="rounded-xl bg-surface-container-low p-3">
-                  <p className="text-sm font-semibold text-on-surface-variant">
-                    Suara Bahasa Indonesia offline
-                  </p>
-                  <p className="mt-1 text-xs text-on-surface-variant">
-                    Piper menggunakan satu voice bawaan; pilihan pria/wanita belum tersedia untuk model ini.
-                  </p>
-                </div>
-              ) : (
+              {isOfflineDesktop && (
                 <>
-                  <label htmlFor="tts-voice-gender" className="text-sm font-semibold text-on-surface-variant">
+                  <label htmlFor="tts-engine" className="text-sm font-semibold text-on-surface-variant">
+                    Mesin suara
+                  </label>
+                  <select
+                    id="tts-engine"
+                    value={ttsEngine}
+                    onChange={(event) => onTtsEngineChange(event.target.value as TtsEngine)}
+                    className="w-full px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="system">Suara Sistem (lebih natural)</option>
+                    <option value="piper">Piper Offline</option>
+                  </select>
+                  <p className="text-xs text-on-surface-variant">
+                    {ttsEngine === 'system'
+                      ? 'Memakai voice Bahasa Indonesia dari sistem. Jika tidak tersedia, otomatis beralih ke Piper Offline.'
+                      : 'Berjalan sepenuhnya offline dengan satu voice bawaan.'}
+                  </p>
+                </>
+              )}
+              {(!isOfflineDesktop || ttsEngine === 'system') && (
+                <>
+                  <label htmlFor="tts-voice-gender" className="mt-2 text-sm font-semibold text-on-surface-variant">
                     Suara panggilan
                   </label>
                   <select
@@ -458,7 +480,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
                     {selectedVoice
                       ? `Voice tersedia: ${selectedVoice.name}`
                       : availableVoices.length > 0
-                        ? `Voice ${voiceGender === 'female' ? 'wanita' : 'pria'} khusus tidak terdeteksi; nada suara akan disesuaikan.`
+                        ? `Voice ${voiceGender === 'female' ? 'wanita' : 'pria'} khusus tidak terdeteksi; sistem akan memilih voice default.`
                         : 'Voice Bahasa Indonesia bergantung pada yang terpasang di sistem.'}
                   </p>
                 </>

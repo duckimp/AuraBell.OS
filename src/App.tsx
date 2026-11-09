@@ -15,7 +15,7 @@ import {
   TtsCallRecord,
 } from './types';
 import { tauriBridge } from './services/tauriBridge';
-import { audioEngine, VoiceGender } from './services/audioEngine';
+import { audioEngine, TtsEngine, VoiceGender } from './services/audioEngine';
 
 const DashboardView = lazy(() =>
   import('./components/DashboardView').then(({ DashboardView }) => ({ default: DashboardView }))
@@ -64,6 +64,15 @@ export function App() {
     setTtsVoiceGender(gender);
     localStorage.setItem('aurabell_tts_voice', gender);
   }, []);
+  const [ttsEngine, setTtsEngine] = useState<TtsEngine>(() =>
+    typeof window !== 'undefined' && localStorage.getItem('aurabell_tts_engine') === 'system'
+      ? 'system'
+      : 'piper'
+  );
+  const handleTtsEngineChange = useCallback((engine: TtsEngine) => {
+    setTtsEngine(engine);
+    localStorage.setItem('aurabell_tts_engine', engine);
+  }, []);
 
   // Load initial data
   useEffect(() => {
@@ -93,6 +102,7 @@ export function App() {
       } else if (payload.audio_type === 'tts' && !payload.audio_file && ttsText) {
         audioEngine.speakIndonesian(ttsText, {
           gender: ttsVoiceGender,
+          engine: ttsEngine,
           chime: 'none',
           onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
         });
@@ -100,6 +110,7 @@ export function App() {
         audioEngine.playSoundFile(payload.audio_file, ttsText
           ? () => audioEngine.speakIndonesian(ttsText, {
               gender: ttsVoiceGender,
+              engine: ttsEngine,
               chime: 'none',
               onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
             })
@@ -118,7 +129,7 @@ export function App() {
       unlistenTrigger();
       unlistenStopped();
     };
-  }, [ttsVoiceGender]);
+  }, [ttsEngine, ttsVoiceGender]);
 
   // Bell actions
   const handleTriggerBell = useCallback(
@@ -302,6 +313,7 @@ export function App() {
       rate: 0.95,
       volume: 1.0,
       gender: ttsVoiceGender,
+      engine: ttsEngine,
       chime: 'bank',
       onEnd: () => {
         onComplete?.();
@@ -487,6 +499,7 @@ export function App() {
                 onSelectTrack={handleSelectTrack}
                 voiceGender={ttsVoiceGender}
                 onVoiceGenderChange={handleVoiceGenderChange}
+                ttsEngine={ttsEngine}
                 isPlayingMusic={isPlayingMusic}
                 currentTrack={currentTrack}
                 onTogglePlayMusic={handleTogglePlayMusic}
@@ -510,6 +523,8 @@ export function App() {
                 onClearHistory={handleClearTtsHistory}
                 voiceGender={ttsVoiceGender}
                 onVoiceGenderChange={handleVoiceGenderChange}
+                ttsEngine={ttsEngine}
+                onTtsEngineChange={handleTtsEngineChange}
               />
             )}
 

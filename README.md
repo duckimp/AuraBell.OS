@@ -12,7 +12,7 @@ AuraBell.OS adalah aplikasi desktop lokal untuk membantu operator sekolah mengat
 - Suara jadwal berupa nada bawaan, file audio lokal, TTS, atau nada yang diikuti pengumuman TTS.
 - Scheduler desktop berjalan saat AuraBell.OS terbuka, termasuk saat jendela disembunyikan ke system tray.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.
-- TTS offline Bahasa Indonesia berbasis Piper untuk aplikasi desktop.
+- Pilihan TTS **Suara Sistem** atau **Piper Offline** untuk desktop, dengan fallback otomatis ke Piper jika Web Speech sistem tidak tersedia.
 - Pemilihan suara TTS pria/wanita di mode browser, mengikuti voice yang tersedia pada sistem.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.
 - Impor file audio lokal. Di desktop, file disalin ke penyimpanan aplikasi agar tetap tersedia setelah aplikasi ditutup.
@@ -103,7 +103,7 @@ Simpan backup di lokasi terpisah dari komputer aplikasi, misalnya penyimpanan ek
 
 - Scheduler otomatis memerlukan aplikasi desktop tetap berjalan. Menutup jendela dengan tombol **X** menyembunyikan aplikasi ke tray; memilih **Keluar** dari menu tray menghentikan scheduler.
 - Penjadwalan dan pemutaran bel tetap bergantung pada komputer menyala, aplikasi aktif, serta perangkat audio yang tersedia.
-- Aplikasi desktop membundel Piper dan satu voice offline Bahasa Indonesia. Model ini hanya memiliki satu speaker, jadi pilihan suara pria/wanita tidak tersedia di desktop. Mode browser tetap bergantung pada Web Speech API dan voice yang tersedia di sistem.
+- Aplikasi desktop menyediakan pilihan voice sistem atau Piper Offline Bahasa Indonesia. Piper hanya memiliki satu speaker, jadi pilihan pria/wanita berlaku untuk voice sistem; mode browser selalu bergantung pada Web Speech API dan voice yang tersedia.
 - Build desktop mengunduh resource Piper dan model suara yang versinya dipatok serta checksum SHA-256-nya diverifikasi. Setelah terpasang, sintesis TTS berjalan lokal tanpa internet. Ukuran installer bertambah karena engine, phonemizer, dan model ikut dibundel.
 - Engine Piper dijalankan hanya saat TTS dibutuhkan, tetapi pemakaian RAM naik sementara selama sintesis; uji pada komputer sekolah sebelum digunakan rutin.
 - Impor YouTube memerlukan internet serta `yt-dlp` dan FFmpeg tersedia di sistem. Kedua program tersebut tidak dibundel bersama installer saat ini.

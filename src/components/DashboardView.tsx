@@ -15,7 +15,7 @@ import {
   Dumbbell
 } from 'lucide-react';
 import { AppData, ScheduleItem, AudioTrack, TargetCategory } from '../types';
-import { audioEngine, VoiceGender } from '../services/audioEngine';
+import { audioEngine, TtsEngine, VoiceGender } from '../services/audioEngine';
 import { isTauri } from '../services/tauriBridge';
 
 interface DashboardViewProps {
@@ -31,6 +31,7 @@ interface DashboardViewProps {
   onSelectTrack: (track: AudioTrack) => void;
   voiceGender: VoiceGender;
   onVoiceGenderChange: (gender: VoiceGender) => void;
+  ttsEngine: TtsEngine;
   isPlayingMusic: boolean;
   currentTrack: AudioTrack | null;
   onTogglePlayMusic: () => void;
@@ -43,6 +44,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTrack,
   voiceGender,
   onVoiceGenderChange,
+  ttsEngine,
   isPlayingMusic,
   currentTrack,
   onTogglePlayMusic,
@@ -390,7 +392,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
               </div>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed">
-                {isTauri() ? 'Piper offline id-ID' : 'Suara Natural id-ID'}
+                {isTauri()
+                  ? ttsEngine === 'system' ? 'Suara sistem id-ID' : 'Piper offline id-ID'
+                  : 'Suara Natural id-ID'}
               </span>
             </div>
 
@@ -414,9 +418,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Form Inputs */}
             <div className="mt-3 flex flex-col gap-2.5">
               {isTauri() ? (
-                <p className="text-xs text-on-surface-variant">
-                  Voice offline tersedia dalam satu pilihan Bahasa Indonesia.
-                </p>
+                ttsEngine === 'system' ? (
+                  <div>
+                    <label className="text-sm font-semibold text-on-surface-variant" htmlFor="quick-tts-voice">
+                      Suara panggilan
+                    </label>
+                    <select
+                      id="quick-tts-voice"
+                      value={voiceGender}
+                      onChange={(event) => onVoiceGenderChange(event.target.value as VoiceGender)}
+                      className="w-full mt-1 px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="female">Wanita</option>
+                      <option value="male">Pria</option>
+                    </select>
+                  </div>
+                ) : (
+                  <p className="text-xs text-on-surface-variant">
+                    Piper Offline menggunakan satu voice Bahasa Indonesia.
+                  </p>
+                )
               ) : (
                 <div>
                   <label className="text-sm font-semibold text-on-surface-variant" htmlFor="quick-tts-voice">
