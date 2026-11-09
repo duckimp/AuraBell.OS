@@ -32,6 +32,11 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "linux": {
+      "deb": {
+        "recommends": ["speech-dispatcher"]
+      }
+    },
     "resources": [
       "resources/tts/**/*"
     ],

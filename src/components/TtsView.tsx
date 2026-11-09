@@ -57,8 +57,10 @@ export const TtsView: React.FC<TtsViewProps> = ({
   // Status
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [synthesizedPreview, setSynthesizedPreview] = useState('');
+  const [engineNotice, setEngineNotice] = useState('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const isOfflineDesktop = isTauri();
+  const isLinuxDesktop = isOfflineDesktop && /linux/i.test(navigator.userAgent);
 
   useEffect(() => {
     const updateVoices = () => setAvailableVoices(getIndonesianVoices());
@@ -110,6 +112,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
     }
 
     setIsBroadcasting(true);
+    setEngineNotice('');
 
     audioEngine.speakIndonesian(synthesizedPreview, {
       pitch,
@@ -118,6 +121,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
       gender: voiceGender,
       engine: ttsEngine,
       chime: chimePreset,
+      onFallback: setEngineNotice,
       onStart: () => setIsBroadcasting(true),
       onEnd: () => {
         setIsBroadcasting(false);
@@ -163,6 +167,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
   // Replay from history
   const handleReplayHistory = (item: TtsCallRecord) => {
     setIsBroadcasting(true);
+    setEngineNotice('');
     audioEngine.speakIndonesian(item.full_text, {
       pitch: 1.0,
       rate: 0.95,
@@ -170,6 +175,7 @@ export const TtsView: React.FC<TtsViewProps> = ({
       gender: voiceGender,
       engine: ttsEngine,
       chime: 'bank',
+      onFallback: setEngineNotice,
       onStart: () => setIsBroadcasting(true),
       onEnd: () => setIsBroadcasting(false),
       onError: (error) => {
@@ -190,7 +196,11 @@ export const TtsView: React.FC<TtsViewProps> = ({
             </span>
             <span className="text-on-surface-variant text-xs">
               {isOfflineDesktop
-                ? '• Piper TTS Offline id-ID + Nada Antrian Bank'
+                ? ttsEngine === 'piper'
+                  ? '• Piper TTS Offline id-ID + Nada Antrian Bank'
+                  : isLinuxDesktop
+                    ? '• Suara Sistem Linux + Nada Antrian Bank'
+                    : '• Web Speech API id-ID + Nada Antrian Bank'
                 : '• Text-to-Speech Web API id-ID + Nada Antrian Bank'}
             </span>
           </div>
@@ -449,15 +459,22 @@ export const TtsView: React.FC<TtsViewProps> = ({
                   <select
                     id="tts-engine"
                     value={ttsEngine}
-                    onChange={(event) => onTtsEngineChange(event.target.value as TtsEngine)}
+                    onChange={(event) => {
+                      setEngineNotice('');
+                      onTtsEngineChange(event.target.value as TtsEngine);
+                    }}
                     className="w-full px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="system">Suara Sistem (lebih natural)</option>
+                    <option value="system">
+                      {isLinuxDesktop ? 'Suara Sistem Linux' : 'Suara Sistem'}
+                    </option>
                     <option value="piper">Piper Offline</option>
                   </select>
                   <p className="text-xs text-on-surface-variant">
                     {ttsEngine === 'system'
-                      ? 'Memakai voice Bahasa Indonesia dari sistem. Jika tidak tersedia, otomatis beralih ke Piper Offline.'
+                      ? isLinuxDesktop
+                        ? 'Mencoba Speech Dispatcher dengan voice Bahasa Indonesia; jika gagal, otomatis beralih ke Piper Offline.'
+                        : 'Memakai voice Bahasa Indonesia dari sistem. Jika tidak tersedia, otomatis beralih ke Piper Offline.'
                       : 'Berjalan sepenuhnya offline dengan satu voice bawaan.'}
                   </p>
                 </>
@@ -477,13 +494,20 @@ export const TtsView: React.FC<TtsViewProps> = ({
                     <option value="male">Pria</option>
                   </select>
                   <p className="text-xs text-on-surface-variant">
-                    {selectedVoice
+                    {isLinuxDesktop && ttsEngine === 'system'
+                      ? `Speech Dispatcher akan memakai voice ${voiceGender === 'female' ? 'wanita' : 'pria'} Bahasa Indonesia bila tersedia.`
+                      : selectedVoice
                       ? `Voice tersedia: ${selectedVoice.name}`
                       : availableVoices.length > 0
                         ? `Voice ${voiceGender === 'female' ? 'wanita' : 'pria'} khusus tidak terdeteksi; sistem akan memilih voice default.`
                         : 'Voice Bahasa Indonesia bergantung pada yang terpasang di sistem.'}
                   </p>
                 </>
+              )}
+              {engineNotice && (
+                <p role="status" className="mt-2 rounded-lg bg-tertiary-fixed/60 px-3 py-2 text-xs text-on-surface">
+                  {engineNotice}
+                </p>
               )}
             </div>
 

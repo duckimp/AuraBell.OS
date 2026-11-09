@@ -662,6 +662,132 @@ async fn synthesize_offline_tts(
         .map_err(|error| format!("Proses sintesis TTS gagal: {error}"))?
 }
 
+#[tauri::command]
+async fn speak_system_tts(
+    text: String,
+    rate: f64,
+    volume: f64,
+    gender: String,
+) -> Result<(), String> {
+    #[cfg(target_os = "linux")]
+    {
+        tauri::async_runtime::spawn_blocking(move || {
+            speak_system_tts_blocking(text, rate, volume, gender)
+        })
+        .await
+        .map_err(|error| format!("Proses Suara Sistem Linux gagal: {error}"))?
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = (text, rate, volume, gender);
+        Err("Speech Dispatcher hanya tersedia di Linux.".to_string())
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn speak_system_tts_blocking(
+    text: String,
+    rate: f64,
+    volume: f64,
+    gender: String,
+) -> Result<(), String> {
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if text.is_empty() {
+        return Err("Teks TTS tidak boleh kosong.".to_string());
+    }
+    if text.chars().count() > 2000 {
+        return Err("Teks TTS terlalu panjang (maksimal 2.000 karakter).".to_string());
+    }
+    if !rate.is_finite() || !volume.is_finite() {
+        return Err("Pengaturan kecepatan atau volume TTS tidak valid.".to_string());
+    }
+    let rate = ((rate.clamp(0.7, 1.3) - 1.0) * 100.0).round() as i32;
+    let volume = ((volume.clamp(0.0, 1.0) - 0.5) * 200.0).round() as i32;
+    let voice_type = match gender.as_str() {
+        "female" => "female1",
+        "male" => "male1",
+        _ => return Err("Pilihan jenis suara sistem tidak valid.".to_string()),
+    };
+
+    let output = Command::new("spd-say")
+        .args([
+            "--wait",
+            "--language",
+            "id",
+            "--rate",
+            &rate.to_string(),
+            "--volume",
+            &volume.to_string(),
+            "--voice-type",
+            voice_type,
+            "--application-name",
+            "AuraBell.OS",
+            "--connection-name",
+            "aurabell-os",
+            "--",
+        ])
+        .arg(&text)
+        .output()
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::NotFound {
+                "Speech Dispatcher belum terpasang (perintah spd-say tidak ditemukan).".to_string()
+            } else {
+                format!("Gagal menjalankan Speech Dispatcher: {error}")
+            }
+        })?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        let details = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(if details.is_empty() {
+            format!(
+                "Speech Dispatcher berhenti dengan status {}.",
+                output.status
+            )
+        } else {
+            format!("Speech Dispatcher gagal: {details}")
+        })
+    }
+}
+
+#[tauri::command]
+fn stop_system_tts() -> Result<(), String> {
+    #[cfg(target_os = "linux")]
+    {
+        let output = Command::new("spd-say")
+            .args([
+                "--application-name",
+                "AuraBell.OS",
+                "--connection-name",
+                "aurabell-os",
+                "--cancel",
+            ])
+            .output()
+            .map_err(|error| format!("Gagal menghentikan Suara Sistem Linux: {error}"))?;
+
+        if output.status.success() {
+            Ok(())
+        } else {
+            let details = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            Err(if details.is_empty() {
+                format!(
+                    "Speech Dispatcher tidak dapat dihentikan (status {}).",
+                    output.status
+                )
+            } else {
+                format!("Speech Dispatcher tidak dapat dihentikan: {details}")
+            })
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(())
+    }
+}
+
 fn synthesize_offline_tts_blocking(
     app: AppHandle,
     text: String,
@@ -1116,6 +1242,8 @@ pub fn run() {
             trigger_bell_manual,
             stop_current_bell,
             add_tts_record,
+            speak_system_tts,
+            stop_system_tts,
             synthesize_offline_tts,
             clear_tts_records,
             set_active_mode,

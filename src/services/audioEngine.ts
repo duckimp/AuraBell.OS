@@ -34,6 +34,7 @@ class AudioEngine {
   private currentSpeechVolume = 1;
   private speechRequestId = 0;
   private speechTimer: ReturnType<typeof setTimeout> | null = null;
+  private nativeSystemSpeechActive = false;
 
   private getContext(): AudioContext {
     if (!this.ctx) {
@@ -399,6 +400,40 @@ class AudioEngine {
     }
   }
 
+  private async speakWithLinuxSystem(
+    text: string,
+    requestId: number,
+    volume: number,
+    rate: number,
+    gender: VoiceGender | undefined,
+    onStart?: () => void,
+    onEnd?: () => void,
+    onError?: (message: string) => void,
+    onFallback?: (message: string) => void
+  ) {
+    this.nativeSystemSpeechActive = true;
+    try {
+      const speech = invoke<void>('speak_system_tts', {
+        text,
+        rate,
+        volume: volume * this.currentVolume,
+        gender: gender ?? 'female',
+      });
+      if (requestId !== this.speechRequestId) return;
+      onStart?.();
+      await speech;
+      if (requestId === this.speechRequestId) onEnd?.();
+    } catch (error) {
+      if (requestId !== this.speechRequestId) return;
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`Suara Sistem Linux gagal, memakai Piper Offline: ${reason}`);
+      onFallback?.(`Speech Dispatcher tidak dapat digunakan; beralih ke Piper Offline. ${reason}`);
+      void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
+    } finally {
+      if (requestId === this.speechRequestId) this.nativeSystemSpeechActive = false;
+    }
+  }
+
   // Use Piper offline in Tauri; browser previews continue to use Web Speech.
   public speakIndonesian(
     text: string,
@@ -412,6 +447,7 @@ class AudioEngine {
       onStart?: () => void;
       onEnd?: () => void;
       onError?: (message: string) => void;
+      onFallback?: (message: string) => void;
     } = {}
   ) {
     const {
@@ -424,6 +460,7 @@ class AudioEngine {
       onStart,
       onEnd,
       onError,
+      onFallback,
     } = options;
 
     this.stopSpeaking();
@@ -436,11 +473,25 @@ class AudioEngine {
       const selectedEngine = engine ?? (isTauri() ? 'piper' : 'system');
       if (selectedEngine === 'piper' && isTauri()) {
         void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
+      } else if (selectedEngine === 'system' && isTauri() && /linux/i.test(navigator.userAgent)) {
+        void this.speakWithLinuxSystem(
+          text,
+          requestId,
+          volume,
+          rate,
+          gender,
+          onStart,
+          onEnd,
+          onError,
+          onFallback
+        );
       } else if (selectedEngine === 'system') {
         this.speakWithWebSpeech(text, requestId, {
           ...speechOptions,
           onUnavailable: (message) => {
             if (isTauri()) {
+              console.warn(`Suara Sistem Web Speech gagal, memakai Piper Offline: ${message}`);
+              onFallback?.(`Suara Sistem tidak tersedia; beralih ke Piper Offline. ${message}`);
               void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
             } else {
               onError?.(message);
@@ -450,7 +501,10 @@ class AudioEngine {
       } else {
         this.speakWithWebSpeech(text, requestId, {
           ...speechOptions,
-          onUnavailable: onError,
+          onUnavailable: (message) => {
+            onFallback?.(`Suara Sistem tidak tersedia: ${message}`);
+            onError?.(message);
+          },
         });
       }
     };
@@ -473,6 +527,8 @@ class AudioEngine {
   }
 
   public stopSpeaking() {
+    const stopNativeSpeech = this.nativeSystemSpeechActive;
+    this.nativeSystemSpeechActive = false;
     this.speechRequestId += 1;
     if (this.speechTimer) {
       clearTimeout(this.speechTimer);
@@ -480,6 +536,11 @@ class AudioEngine {
     }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+    }
+    if (stopNativeSpeech && isTauri()) {
+      void invoke('stop_system_tts').catch((error: unknown) => {
+        console.error('Gagal menghentikan Suara Sistem Linux:', error);
+      });
     }
     if (this.currentSpeechSource) {
       this.currentSpeechSource.onended = null;
