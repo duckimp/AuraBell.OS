@@ -28,8 +28,8 @@ class AudioEngine {
   private emergencyGain: GainNode | null = null;
   private currentVolume = 0.85;
   private currentBellAudio: HTMLAudioElement | null = null;
-  private currentSpeechAudio: HTMLAudioElement | null = null;
-  private currentSpeechFile: string | null = null;
+  private currentSpeechSource: AudioBufferSourceNode | null = null;
+  private currentSpeechGain: GainNode | null = null;
   private currentSpeechVolume = 1;
   private speechRequestId = 0;
   private speechTimer: ReturnType<typeof setTimeout> | null = null;
@@ -48,8 +48,11 @@ class AudioEngine {
   public setVolume(vol: number) {
     this.currentVolume = Math.max(0, Math.min(1, vol / 100));
     if (this.currentBellAudio) this.currentBellAudio.volume = this.currentVolume;
-    if (this.currentSpeechAudio) {
-      this.currentSpeechAudio.volume = this.currentSpeechVolume * this.currentVolume;
+    if (this.currentSpeechGain && this.ctx) {
+      this.currentSpeechGain.gain.setValueAtTime(
+        this.currentSpeechVolume * this.currentVolume,
+        this.ctx.currentTime
+      );
     }
   }
 
@@ -274,12 +277,6 @@ class AudioEngine {
     this.bellOscillators.clear();
   }
 
-  private removeGeneratedTtsFile(path: string) {
-    void invoke('remove_tts_audio', { path }).catch((error: unknown) => {
-      console.error('Gagal menghapus cache audio TTS:', error);
-    });
-  }
-
   private speakWithWebSpeech(
     text: string,
     requestId: number,
@@ -341,70 +338,53 @@ class AudioEngine {
     onEnd?: () => void,
     onError?: (message: string) => void
   ) {
-    let filePath: string | null = null;
-    let audio: HTMLAudioElement | null = null;
+    let source: AudioBufferSourceNode | null = null;
+    let gain: GainNode | null = null;
     let settled = false;
 
     const release = () => {
-      if (audio && this.currentSpeechAudio === audio) {
-        this.currentSpeechAudio = null;
-        this.currentSpeechFile = null;
+      if (source && this.currentSpeechSource === source) {
+        this.currentSpeechSource = null;
+        this.currentSpeechGain = null;
       }
-      if (filePath) this.removeGeneratedTtsFile(filePath);
+      source?.disconnect();
+      gain?.disconnect();
     };
 
     const fail = (message: string) => {
       if (settled) return;
       settled = true;
-      if (audio) {
-        audio.onplaying = null;
-        audio.onended = null;
-        audio.onerror = null;
-        audio.pause();
-        audio.src = '';
-      }
+      source?.stop();
       release();
       if (requestId === this.speechRequestId) onError?.(message);
     };
 
     try {
-      filePath = await invoke<string>('synthesize_offline_tts', { text, rate });
-      if (requestId !== this.speechRequestId) {
-        this.removeGeneratedTtsFile(filePath);
-        return;
-      }
+      const audioBytes = await invoke<number[]>('synthesize_offline_tts', { text, rate });
+      if (requestId !== this.speechRequestId) return;
 
-      audio = new Audio(convertFileSrc(filePath));
-      audio.volume = volume * this.currentVolume;
+      const context = this.getContext();
+      const audioBuffer = await context.decodeAudioData(Uint8Array.from(audioBytes).buffer);
+      if (requestId !== this.speechRequestId) return;
+
+      source = context.createBufferSource();
+      gain = context.createGain();
+      source.buffer = audioBuffer;
+      gain.gain.setValueAtTime(volume * this.currentVolume, context.currentTime);
+      source.connect(gain);
+      gain.connect(context.destination);
       this.currentSpeechVolume = volume;
-      this.currentSpeechAudio = audio;
-      this.currentSpeechFile = filePath;
+      this.currentSpeechSource = source;
+      this.currentSpeechGain = gain;
 
-      let didStart = false;
-      audio.onplaying = () => {
-        if (!didStart && requestId === this.speechRequestId) {
-          didStart = true;
-          onStart?.();
-        }
-      };
-      audio.onended = () => {
+      source.onended = () => {
         if (settled) return;
-        const endedAudio = audio;
-        if (!endedAudio) return;
         settled = true;
-        endedAudio.onplaying = null;
-        endedAudio.onended = null;
-        endedAudio.onerror = null;
-        endedAudio.pause();
-        endedAudio.src = '';
         release();
         if (requestId === this.speechRequestId) onEnd?.();
       };
-      audio.onerror = () => {
-        fail(audio?.error?.message || 'Tidak dapat memutar hasil suara Piper.');
-      };
-
-      await audio.play();
+      source.start();
+      onStart?.();
     } catch (error) {
       fail(error instanceof Error ? error.message : String(error));
     }
@@ -475,17 +455,13 @@ class AudioEngine {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-    if (this.currentSpeechAudio) {
-      const audio = this.currentSpeechAudio;
-      const filePath = this.currentSpeechFile;
-      audio.onplaying = null;
-      audio.onended = null;
-      audio.onerror = null;
-      audio.pause();
-      audio.src = '';
-      this.currentSpeechAudio = null;
-      this.currentSpeechFile = null;
-      if (filePath) this.removeGeneratedTtsFile(filePath);
+    if (this.currentSpeechSource) {
+      this.currentSpeechSource.onended = null;
+      this.currentSpeechSource.stop();
+      this.currentSpeechSource.disconnect();
+      this.currentSpeechGain?.disconnect();
+      this.currentSpeechSource = null;
+      this.currentSpeechGain = null;
     }
   }
 }

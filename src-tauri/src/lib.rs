@@ -656,7 +656,7 @@ async fn synthesize_offline_tts(
     app: AppHandle,
     text: String,
     rate: f64,
-) -> Result<String, String> {
+) -> Result<Vec<u8>, String> {
     tauri::async_runtime::spawn_blocking(move || synthesize_offline_tts_blocking(app, text, rate))
         .await
         .map_err(|error| format!("Proses sintesis TTS gagal: {error}"))?
@@ -666,7 +666,7 @@ fn synthesize_offline_tts_blocking(
     app: AppHandle,
     text: String,
     rate: f64,
-) -> Result<String, String> {
+) -> Result<Vec<u8>, String> {
     let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
     if text.is_empty() {
         return Err("Teks TTS tidak boleh kosong.".to_string());
@@ -767,48 +767,21 @@ fn synthesize_offline_tts_blocking(
         });
     }
 
-    let metadata = match fs::metadata(&output_path) {
-        Ok(metadata) => metadata,
+    let audio = match fs::read(&output_path) {
+        Ok(audio) => audio,
         Err(error) => {
             let _ = fs::remove_file(&output_path);
-            return Err(format!("Piper tidak menghasilkan file audio: {error}"));
+            return Err(format!("Gagal membaca hasil audio Piper: {error}"));
         }
     };
-    if metadata.len() <= 44 {
+    if audio.len() <= 44 || &audio[..4] != b"RIFF" {
         let _ = fs::remove_file(&output_path);
         return Err("Piper menghasilkan file audio yang kosong.".to_string());
     }
+    fs::remove_file(&output_path)
+        .map_err(|error| format!("Gagal membersihkan file sementara TTS: {error}"))?;
 
-    Ok(output_path.to_string_lossy().into_owned())
-}
-
-#[tauri::command]
-fn remove_tts_audio(app: AppHandle, path: String) -> Result<(), String> {
-    let output_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|error| format!("Folder data aplikasi tidak tersedia: {error}"))?
-        .join("tts-cache");
-    let output_path = PathBuf::from(path);
-    let file_name = output_path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| "Lokasi file TTS tidak valid.".to_string())?;
-    if output_path.parent() != Some(output_dir.as_path())
-        || !file_name.starts_with("aurabell-tts-")
-        || output_path
-            .extension()
-            .and_then(|extension| extension.to_str())
-            != Some("wav")
-    {
-        return Err("File yang diminta bukan hasil TTS AuraBell.OS.".to_string());
-    }
-
-    match fs::remove_file(output_path) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(format!("Gagal menghapus cache audio TTS: {error}")),
-    }
+    Ok(audio)
 }
 
 #[tauri::command]
@@ -1144,7 +1117,6 @@ pub fn run() {
             stop_current_bell,
             add_tts_record,
             synthesize_offline_tts,
-            remove_tts_audio,
             clear_tts_records,
             set_active_mode,
             toggle_auto_bell,
