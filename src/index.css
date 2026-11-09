@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', sans-serif;
+    background-color: #f7f9fb;
+    color: #191c1e;
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  20%, 60% {
+    transform: rotate(15deg);
+  }
+  40%, 80% {
+    transform: rotate(-15deg);
+  }
+}
+
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Keep supporting text readable without competing with primary actions. */
+.text-\[9px\] {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.text-\[10px\] {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.text-\[11px\] {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.text-xs {
+  font-size: 14px;
+  line-height: 1.45;
+}

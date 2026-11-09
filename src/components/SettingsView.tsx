@@ -1,0 +1,252 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { Download, GraduationCap, RotateCcw, Save, Upload } from 'lucide-react';
+import { AppData } from '../types';
+import { isTauri, tauriBridge } from '../services/tauriBridge';
+
+interface SettingsViewProps {
+  appData: AppData;
+  onSaveSchoolSettings: (schoolName: string, academicYear: string) => Promise<void>;
+  onRestoreBackup: (data: AppData) => Promise<void>;
+}
+
+function isAppData(value: unknown): value is AppData {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<AppData>;
+  return Boolean(
+    data.settings &&
+      typeof data.settings.school_name === 'string' &&
+      typeof data.settings.academic_year === 'string' &&
+      Array.isArray(data.schedules) &&
+      Array.isArray(data.playlist) &&
+      Array.isArray(data.tts_history) &&
+      Array.isArray(data.holidays)
+  );
+}
+
+export const SettingsView: React.FC<SettingsViewProps> = ({
+  appData,
+  onSaveSchoolSettings,
+  onRestoreBackup,
+}) => {
+  const [schoolName, setSchoolName] = useState(appData.settings.school_name);
+  const [academicYear, setAcademicYear] = useState(appData.settings.academic_year);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
+  const browserImportRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setSchoolName(appData.settings.school_name);
+    setAcademicYear(appData.settings.academic_year);
+  }, [appData.settings.school_name, appData.settings.academic_year]);
+
+  const handleSaveSchool = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!schoolName.trim()) {
+      setStatus({ kind: 'error', message: 'Nama sekolah harus diisi.' });
+      return;
+    }
+
+    setBusy(true);
+    setStatus(null);
+    try {
+      await onSaveSchoolSettings(schoolName.trim(), academicYear.trim());
+      setStatus({ kind: 'success', message: 'Pengaturan sekolah berhasil disimpan.' });
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal menyimpan pengaturan: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleExportBackup = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      if (isTauri()) {
+        const path = await save({
+          title: 'Simpan backup AuraBell.OS',
+          defaultPath: 'aurabell-backup.zip',
+          filters: [{ name: 'Backup AuraBell.OS', extensions: ['zip'] }],
+        });
+        if (!path) return;
+        await tauriBridge.exportAppBackup(path);
+      } else {
+        const backup = {
+          format: 'AuraBell.OS backup',
+          format_version: 1,
+          data: appData,
+        };
+        const url = URL.createObjectURL(
+          new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'aurabell-backup.json';
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+      setStatus({
+        kind: 'success',
+        message: 'Backup berhasil dibuat. Simpan file ini di tempat yang aman.',
+      });
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal membuat backup: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const applyBackup = async (data: AppData) => {
+    if (!window.confirm('Pulihkan backup? Data AuraBell.OS yang sekarang akan diganti.')) return;
+    await onRestoreBackup(data);
+    setStatus({ kind: 'success', message: 'Backup berhasil dipulihkan.' });
+  };
+
+  const handleRestoreBackup = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      if (isTauri()) {
+        const path = await open({
+          title: 'Pilih backup AuraBell.OS',
+          multiple: false,
+          filters: [{ name: 'Backup AuraBell.OS', extensions: ['zip'] }],
+        });
+        if (typeof path !== 'string') return;
+        const restoredData = await tauriBridge.restoreAppBackup(path);
+        await applyBackup(restoredData);
+      } else {
+        browserImportRef.current?.click();
+      }
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal memulihkan backup: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleBrowserBackupFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      const backup = JSON.parse(await file.text()) as { data?: unknown };
+      if (!isAppData(backup.data)) {
+        throw new Error('Struktur file backup tidak valid.');
+      }
+      await applyBackup(backup.data);
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal memulihkan backup: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-space-lg pb-24">
+      <div>
+        <span className="text-xs font-bold uppercase tracking-wider text-primary">Konfigurasi</span>
+        <h1 className="mt-1 font-headline text-2xl font-extrabold text-primary">Pengaturan Sekolah</h1>
+        <p className="mt-1 text-sm text-on-surface-variant">
+          Atur identitas sekolah dan pindahkan konfigurasi AuraBell.OS dengan backup.
+        </p>
+      </div>
+
+      <form
+        onSubmit={handleSaveSchool}
+        className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm"
+      >
+        <div className="flex items-center gap-2 border-b border-surface-container pb-3">
+          <GraduationCap className="h-5 w-5 text-primary" />
+          <h2 className="font-headline text-base font-bold text-primary">Identitas Sekolah</h2>
+        </div>
+        <label className="flex flex-col gap-1 text-sm font-semibold text-on-surface-variant">
+          Nama sekolah
+          <input
+            value={schoolName}
+            onChange={(event) => setSchoolName(event.target.value)}
+            maxLength={120}
+            required
+            className="rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-semibold text-on-surface-variant">
+          Tahun ajaran
+          <input
+            value={academicYear}
+            onChange={(event) => setAcademicYear(event.target.value)}
+            maxLength={80}
+            className="rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary hover:bg-primary-container disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          Simpan Pengaturan
+        </button>
+      </form>
+
+      <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+        <div className="flex items-center gap-2 border-b border-surface-container pb-3">
+          <RotateCcw className="h-5 w-5 text-primary" />
+          <div>
+            <h2 className="font-headline text-base font-bold text-primary">Backup & Restore</h2>
+            <p className="text-sm text-on-surface-variant">
+              Simpan jadwal, pengaturan, playlist, riwayat, dan data sekolah untuk dipindahkan ke perangkat lain.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => void handleExportBackup()}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary hover:bg-primary-container disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            Buat Backup
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleRestoreBackup()}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-xl bg-surface-container px-4 py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container-high disabled:opacity-50"
+          >
+            <Upload className="h-4 w-4" />
+            Pulihkan Backup
+          </button>
+          <input
+            ref={browserImportRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={(event) => void handleBrowserBackupFile(event)}
+            className="hidden"
+          />
+        </div>
+        <p className="rounded-xl bg-surface-container-low p-3 text-sm text-on-surface-variant">
+          {isTauri()
+            ? 'Backup desktop berupa file ZIP yang menyertakan audio lokal. Restore akan mengganti data saat ini.'
+            : 'Backup browser berupa JSON dan tidak menyertakan berkas audio. Untuk memindahkan audio, gunakan aplikasi desktop AuraBell.OS.'}
+        </p>
+        {status && (
+          <p
+            role={status.kind === 'error' ? 'alert' : 'status'}
+            className={`rounded-xl p-3 text-sm font-medium ${
+              status.kind === 'error'
+                ? 'bg-error-container text-on-error-container'
+                : 'bg-primary-fixed/40 text-primary'
+            }`}
+          >
+            {status.message}
+          </p>
+        )}
+      </section>
+    </div>
+  );
+};

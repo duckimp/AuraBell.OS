@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#2c4a5e", "on-tertiary-container": "#ffb477", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "tertiary-container": "#7d4200", "secondary-fixed": "#c8e6ff", "on-primary-fixed": "#002018", "on-secondary-container": "#48667b", "primary": "#004335", "primary-fixed-dim": "#8fd4bd", "on-secondary-fixed": "#001e2e", "surface-variant": "#e0e3e5", "outline": "#6f7975", "inverse-primary": "#8fd4bd", "primary-fixed": "#aaf1d9", "on-surface": "#191c1e", "surface": "#f7f9fb", "surface-container-low": "#f2f4f6", "on-primary-fixed-variant": "#005140", "error-container": "#ffdad6", "inverse-surface": "#2d3133", "on-surface-variant": "#3f4945", "outline-variant": "#bfc9c3", "background": "#f7f9fb", "surface-container-high": "#e6e8ea", "on-primary-container": "#8cd2bb", "tertiary-fixed-dim": "#ffb77d", "inverse-on-surface": "#eff1f3", "on-primary": "#ffffff", "surface-container": "#eceef0", "on-background": "#191c1e", "secondary-fixed-dim": "#accae3", "surface-dim": "#d8dadc", "on-error-container": "#93000a", "secondary": "#446277", "surface-container-highest": "#e0e3e5", "secondary-container": "#c5e4fc", "error": "#ba1a1a", "tertiary-fixed": "#ffdcc3", "surface-tint": "#216a57", "primary-container": "#0d5c4a", "surface-bright": "#f7f9fb", "on-tertiary-fixed": "#2f1500", "tertiary": "#5c2f00", "on-tertiary-fixed-variant": "#6e3900", "on-error": "#ffffff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1.5rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-desktop": "1.5rem", "gutter": "1.25rem", "space-md": "1rem", "space-2xl": "3rem", "margin-desktop": "2rem" }, "fontFamily": { "code-time": [ "Manrope" ], "label-lg": [ "Plus Jakarta Sans" ], "headline-sm": [ "Plus Jakarta Sans" ], "body-sm": [ "Manrope" ], "headline-xl": [ "Plus Jakarta Sans" ], "label-sm": [ "Plus Jakarta Sans" ], "label-md": [ "Plus Jakarta Sans" ], "body-md": [ "Manrope" ], "body-lg": [ "Manrope" ], "headline-lg": [ "Plus Jakarta Sans" ], "headline-md": [ "Plus Jakarta Sans" ] }, "fontSize": { "code-time": [ "15px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" } ], "body-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" } ], "headline-xl": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-sm": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.005em", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" } ], "headline-md": [ "22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between overflow-y-auto"><div class="p-space-lg flex flex-col gap-space-md"><div class="flex items-center gap-space-sm pb-space-sm"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center shadow-sm text-on-primary"><span class="material-symbols-outlined text-[24px]">notifications_active</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">BellSchool OS</span><div class="flex items-center gap-1.5 mt-0.5"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Sistem Aktif - Online</span></div></div></div><div class="rounded-xl bg-surface-container-low p-space-md flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">school</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md text-on-surface font-semibold truncate">SMA Negeri 1 Teladan</span><span class="font-body-sm text-body-sm text-on-surface-variant truncate">ID: BSO-JKT-8821</span></div></div><div class="rounded-xl bg-primary text-on-primary p-space-md shadow-[0_4px_6px_-1px_rgba(13,92,74,0.06)]"><div class="flex items-center justify-between mb-1"><span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider">Waktu Sistem</span><span class="material-symbols-outlined text-[16px] text-on-primary-container">schedule</span></div><div class="font-code-time text-code-time text-2xl font-bold tracking-tight text-on-primary">07:28:45 <span class="text-xs font-normal text-on-primary-container">WIB</span></div><div class="font-body-sm text-body-sm text-on-primary-container mt-1">Senin, 17 Maret 2025</div></div><nav class="flex flex-col gap-1.5 pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold shadow-sm"><a aria-current="page" class="flex items-center px-space-md py-space-sm rounded-lg transition-all duration-150 bg-primary-container text-on-primary font-bold shadow-sm" data-path="dashboard" href="#"><span class="font-label-lg text-label-lg">Dashboard</span></a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="jadwal-bel" href="#"><span class="font-label-lg text-label-lg">Jadwal Bel</span></a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="panggilan-tts" href="#"><span class="font-label-lg text-label-lg">Panggilan (TTS)</span></a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="senam-audio" href="#"><span class="font-label-lg text-label-lg">Senam &amp; Audio</span></a></nav></div><div class="p-space-lg bg-surface-container-low/70 m-space-md rounded-xl flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">speaker_group</span>Status Audio</span><span class="w-1.5 h-1.5 rounded-full bg-primary"></span></div><div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">PA Speaker Hall A &amp; B</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-between pt-1"><span class="text-[11px]">Terhubung</span><span class="font-code-time text-xs text-primary font-bold">Vol: 85%</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-[18px] text-secondary">calendar_today</span><span class="font-label-md text-label-md text-on-surface font-semibold">T.A. 2024/2025 - Semester Genap</span></div><span class="hidden xl:inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>Automasi Bel Berjalan Sesuai Jadwal (NTP Sync)</span></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container px-space-md py-2 rounded-lg font-label-md text-label-md shadow-sm transition-colors duration-150 cursor-pointer" type="button"><span class="material-symbols-outlined text-[20px]">warning</span><span>Darurat: Bunyikan Bel</span></button><div class="h-6 w-[1px] bg-outline-variant/40"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Administrator</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Admin Operasional</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop py-space-lg"><div class="flex flex-col w-full gap-space-xl pb-space-2xl">
+<!-- Operational Overview Header & Live Status -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">Dashboard Kontrol Cepat</span>
+<span class="bg-primary/10 text-primary font-label-sm text-label-sm px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Quick Access</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+        Pusat kendali operasional harian bel sekolah, siaran suara langsung, dan pemutaran audio senam presisi tinggi.
+      </p>
+</div>
+<!-- Live NTP Synchronization Badge -->
+<div class="flex items-center gap-3 bg-surface-container-lowest px-4 py-2.5 rounded-xl shadow-sm self-start lg:self-auto">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-bold">Otomasi Bel Aktif</span>
+<span class="font-body-sm text-body-sm text-primary font-semibold">(NTP Sync)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Offset ±0.012s • Terhubung Server Jam Utama</span>
+</div>
+</div>
+</div>
+<!-- Metric Overview Bento Cards (4 Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- Stat 1: Bel Terjadwal Hari Ini -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Bel Terjadwal Hari Ini</span>
+<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight mt-1">10 <span class="font-body-md text-body-md text-on-surface-variant font-normal">Sesi</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">calendar_clock</span>
+</div>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-2.5 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> 4 Selesai
+        </span>
+<span class="font-label-sm text-label-sm text-tertiary-container font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> 1 Aktif
+        </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span> 5 Menunggu
+        </span>
+</div>
+</div>
+<!-- Stat 2: Bel Berikutnya (Next Upcoming with Countdown) -->
+<div class="bg-primary text-on-primary rounded-xl p-space-md shadow-[0_4px_12px_rgba(13,92,74,0.15)] flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider font-semibold">Bel Berikutnya (Otomatis)</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-code-time text-code-time text-headline-lg font-bold tracking-tight text-on-primary">09:45</span>
+<span class="font-label-md text-label-md text-on-primary-container font-bold">WIB</span>
+</div>
+<span class="font-label-md text-label-md text-on-primary font-medium">Istirahat Pertama</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-on-primary/10 flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[24px]">notifications_active</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between bg-on-primary/10 rounded-lg px-2.5 py-1.5">
+<span class="font-label-sm text-label-sm text-on-primary-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">timer</span> Hitung Mundur:
+        </span>
+<span class="font-code-time text-code-time font-bold text-on-primary" id="countdown-timer">24m 15s</span>
+</div>
+</div>
+<!-- Stat 3: Speaker PA Terhubung -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Speaker PA Terhubung</span>
+<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight mt-1">24 <span class="font-body-md text-body-md text-on-surface-variant font-normal">Titik</span></span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[22px]">volume_up</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">4 Zona Matriks Terbuka</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-2 py-0.5 rounded">100% Online</span>
+</div>
+</div>
+<!-- Stat 4: Audio Senam Terakhir -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Audio Senam Terakhir</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight mt-1 truncate max-w-[180px]">SKJ 2022 Pelajar</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]">fitness_center</span>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">history</span> 07:00 WIB (Pagi ini)
+        </span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Lapangan</span>
+</div>
+</div>
+</div>
+<!-- MAIN QUICK ACCESS GRID: Instant Senam Player vs Instant TTS Announcement -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- PANEL A: Quick Access Pemutar Musik Senam (5 Cols) -->
+<div class="lg:col-span-6 xl:col-span-6 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md">
+<div>
+<div class="flex items-start justify-between gap-2 pb-space-sm">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[20px]">music_note</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Akses Cepat Musik Senam &amp; Upacara</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Satu-klik siarkan audio ke speaker lapangan atau seluruh area.</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">1-Tap Preset</span>
+</div>
+<!-- Preset Audio List -->
+<div class="flex flex-col gap-2 mt-3">
+<!-- Item 1 -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<button class="w-9 h-9 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-sm" onclick="playPreset('Senam Kesegaran Jasmani (SKJ) 2022')" title="Putar Sekarang">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">SKJ 2022 Pelajar (Kemenpora)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">timer</span> 06:45 • Target: Lapangan Utama
+                </span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold px-2 py-0.5 rounded bg-primary-fixed/40">Populer</span>
+</div>
+<!-- Item 2 -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<button class="w-9 h-9 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-sm" onclick="playPreset('Senam Maumere Upbeat')" title="Putar Sekarang">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">Senam Maumere Versi Upbeat</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">timer</span> 04:12 • Target: Lapangan Utama
+                </span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Pemanasan</span>
+</div>
+<!-- Item 3 -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<button class="w-9 h-9 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-sm" onclick="playPreset('Lagu Kebangsaan Indonesia Raya (3 Stanza)')" title="Putar Sekarang">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">Indonesia Raya (3 Stanza)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">timer</span> 03:15 • Target: Semua Zona
+                </span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary-container font-semibold">Upacara</span>
+</div>
+<!-- Item 4 -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<button class="w-9 h-9 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-sm" onclick="playPreset('Musik Relaksasi / Bel Istirahat')" title="Putar Sekarang">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">Musik Relaksasi Pendinginan</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">timer</span> 05:20 • Target: Selasar &amp; Kantin
+                </span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-medium">Santai</span>
+</div>
+</div>
+</div>
+<!-- Integrated Mini Deck Controller -->
+<div class="bg-surface-container-high/60 rounded-xl p-3.5 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-outline" id="player-status-badge"></span>
+<span class="font-label-md text-label-md text-on-surface font-bold truncate max-w-[200px]" id="now-playing-label">Player Siaga (Standby)</span>
+</div>
+<button class="flex items-center gap-1 text-error hover:bg-error/10 px-2.5 py-1 rounded-md font-label-sm text-label-sm font-bold transition-colors" id="master-stop-btn" onclick="stopMasterAudio()">
+<span class="material-symbols-outlined text-[18px]">stop_circle</span> Stop Audio
+          </button>
+</div>
+<!-- Target Zone Buttons & Volume Scrubber -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Target Output:</span>
+<div class="flex items-center gap-1">
+<button class="target-chip active px-2.5 py-1 text-xs font-label-sm rounded bg-primary text-on-primary font-semibold" onclick="setZoneTarget('lapangan')">Lapangan</button>
+<button class="target-chip px-2.5 py-1 text-xs font-label-sm rounded bg-surface-container-lowest text-on-surface hover:bg-surface-variant font-medium" onclick="setZoneTarget('halaman')">Halaman</button>
+<button class="target-chip px-2.5 py-1 text-xs font-label-sm rounded bg-surface-container-lowest text-on-surface hover:bg-surface-variant font-medium" onclick="setZoneTarget('semua')">Semua Zona</button>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Volume PA:</span>
+<span class="font-code-time text-xs font-bold text-primary" id="vol-indicator">85%</span>
+</div>
+<input class="w-full accent-primary h-1.5 bg-surface-variant rounded cursor-pointer" max="100" min="0" oninput="updateVolume(this.value)" type="range" value="85"/>
+</div>
+</div>
+<div class="pt-2 flex justify-end">
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container font-bold flex items-center gap-1 transition-colors" href="#">
+            Buka Koleksi Audio Lengkap →
+          </a>
+</div>
+</div>
+</div>
+<!-- PANEL B: Quick Access Instant TTS & Voice Broadcast (7 Cols) -->
+<div class="lg:col-span-6 xl:col-span-6 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md">
+<div>
+<div class="flex items-start justify-between gap-2 pb-space-sm">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[20px]">record_voice_over</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Quick TTS &amp; Siaran Pengumuman Cepat</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Kirim pesan suara instan ke speaker ruang kelas tanpa konfigurasi rumit.</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Live TTS</span>
+</div>
+<!-- One-Tap Preset Chips -->
+<div class="flex flex-col gap-1.5 mt-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Preset Cepat:</span>
+<div class="flex flex-wrap gap-1.5">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="applyPresetText('Panggilan kepada guru piket hari ini, dimohon untuk segera menuju ke ruang lobi utama sekolah.')">
+              🔔 Piket Guru
+            </button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="applyPresetText('Pemberitahuan kendaraan: Mobil Toyota Avanza B 1234 XYZ menghalangi jalur masuk bus sekolah, mohon dipindahkan.')">
+              🚗 Kendaraan Parkir
+            </button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="applyPresetText('Perhatian kepada seluruh siswa dan dewan guru, kegiatan upacara bendera akan segera dimulai dalam 5 menit.')">
+              📢 Upacara Segera Mulai
+            </button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="applyPresetText('Kepada seluruh perwakilan ketua kelas 10, 11, dan 12 dimohon berkumpul di ruang OSIS sekarang.')">
+              👥 Ketua Kelas
+            </button>
+</div>
+</div>
+<!-- Input Textarea with Counter -->
+<div class="mt-3 flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface font-bold flex items-center justify-between" for="tts-input">
+<span>Teks Siaran Otomatis (TTS):</span>
+<span class="font-body-sm text-body-sm text-outline" id="char-counter">0 / 250 karakter</span>
+</label>
+<textarea class="w-full rounded-lg bg-surface-container-low p-3 font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#004335] transition-all resize-none" id="tts-input" maxlength="250" oninput="updateCharCounter(this)" placeholder="Ketik pengumuman di sini... (Contoh: Kepada seluruh siswa kelas 12, pengumpulan berkas ujian maksimal pukul 11 siang di TU)" rows="3"></textarea>
+</div>
+<!-- Speaker Target Selection & Voice Profile -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+<div class="flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Tujuan Siaran:</span>
+<div class="flex flex-wrap gap-1.5">
+<label class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-md cursor-pointer hover:bg-surface-container">
+<input checked="" class="accent-primary rounded" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface">Semua Kelas</span>
+</label>
+<label class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-md cursor-pointer hover:bg-surface-container">
+<input checked="" class="accent-primary rounded" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface">Lapangan</span>
+</label>
+<label class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-md cursor-pointer hover:bg-surface-container">
+<input class="accent-primary rounded" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface">Ruang Guru</span>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Suara Sintesis:</span>
+<div class="flex items-center gap-2">
+<label class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-md cursor-pointer flex-1">
+<input checked="" class="accent-primary" name="voice" type="radio" value="sari"/>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Sari (Wanita)</span>
+</label>
+<label class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-md cursor-pointer flex-1">
+<input class="accent-primary" name="voice" type="radio" value="budi"/>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Budi (Pria)</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-3 pt-2">
+<button class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md px-4 py-2.5 rounded-lg transition-colors cursor-pointer" onclick="previewVoice()" type="button">
+<span class="material-symbols-outlined text-[18px]">hearing</span>
+<span>Pratinjau Suara</span>
+</button>
+<button class="flex-2 sm:flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg px-6 py-2.5 rounded-lg shadow-[0_4px_10px_rgba(13,92,74,0.2)] hover:shadow-md transition-all active:scale-[0.99] cursor-pointer" onclick="broadcastTTS()" type="button">
+<span class="material-symbols-outlined text-[20px]">campaign</span>
+<span>Siarkan Pengumuman Sekarang</span>
+</button>
+</div>
+</div>
+</div>
+<!-- REAL-TIME TIMELINE & AUDIO MATRIX ZONE MONITOR -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT COLUMN: Bell Schedule Flow Today (7 Cols) -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[24px]">timeline</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Alur Otomasi Bel Hari Ini</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Jadwal bel sinkron otomatis tanpa intervensi manual.</p>
+</div>
+</div>
+<span class="bg-primary/10 text-primary font-label-sm text-label-sm px-3 py-1 rounded-full font-bold">Senin Reguler</span>
+</div>
+<!-- Vertical Schedule Matrix -->
+<div class="relative pl-6 flex flex-col gap-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-variant">
+<!-- Item 1: Selesai -->
+<div class="relative flex items-center justify-between bg-surface-container-low/50 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] shadow-xs">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">06:45 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Bel Masuk &amp; Apel Pagi</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-medium">Selesai Berbunyi</span>
+</div>
+<!-- Item 2: Selesai -->
+<div class="relative flex items-center justify-between bg-surface-container-low/50 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] shadow-xs">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">07:00 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Jam Pelajaran Ke-1</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-medium">Selesai Berbunyi</span>
+</div>
+<!-- Item 3: Selesai -->
+<div class="relative flex items-center justify-between bg-surface-container-low/50 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] shadow-xs">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">08:30 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Pergantian Jam Ke-3</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-medium">Selesai Berbunyi</span>
+</div>
+<!-- Item 4: AKTIF HITUNG MUNDUR -->
+<div class="relative flex items-center justify-between bg-primary/10 p-3 rounded-lg ring-1 ring-primary/20 shadow-xs">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] shadow-md animate-pulse">
+<span class="material-symbols-outlined text-[14px]">alarm</span>
+</span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-base font-bold text-primary">09:45 WIB</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary font-bold">Istirahat Pertama (Chime Melodi 01)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Target: Seluruh Ruang Kelas &amp; Koridor</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-primary bg-primary px-2.5 py-1 rounded-full font-bold shadow-xs">Berikutnya</span>
+</div>
+<!-- Item 5: Menunggu -->
+<div class="relative flex items-center justify-between bg-surface-container-low/30 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-surface-variant flex items-center justify-center text-[12px]"></span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">10:15 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Masuk Jam Ke-4 (Akhir Istirahat)</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline-variant font-medium">Menunggu</span>
+</div>
+<!-- Item 6: Menunggu -->
+<div class="relative flex items-center justify-between bg-surface-container-low/30 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-surface-variant flex items-center justify-center text-[12px]"></span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">11:45 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Istirahat Ke-2 &amp; Sholat Dzuhur</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline-variant font-medium">Menunggu</span>
+</div>
+<!-- Item 7: Menunggu -->
+<div class="relative flex items-center justify-between bg-surface-container-low/30 p-2.5 rounded-lg">
+<span class="absolute -left-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-surface-variant flex items-center justify-center text-[12px]"></span>
+<div class="flex items-center gap-3">
+<span class="font-code-time text-code-time text-sm font-bold text-on-surface-variant">15:00 WIB</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Bel Pulang Sekolah (Lagu Nasional)</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline-variant font-medium">Menunggu</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span class="font-body-sm text-body-sm">Bel otomatis 100% presisi berkat sinkronisasi NTP Server tanpa jeda perangkat.</span>
+</div>
+</div>
+<!-- RIGHT COLUMN: Matrix Zone Status & Quick Audio Diagnostics (5 Cols) -->
+<div class="lg:col-span-5 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md">
+<div>
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">speaker_group</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Status PA Matrix &amp; Zona</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pemantauan 4 zona distribusi amplifier.</p>
+</div>
+</div>
+<button class="flex items-center gap-1.5 bg-surface-container hover:bg-surface-variant text-on-surface font-label-sm text-label-sm px-2.5 py-1 rounded-lg transition-colors cursor-pointer" onclick="testTone1kHz()" title="Kirim nada uji frekuensi 1kHz selama 2 detik">
+<span class="material-symbols-outlined text-[16px] text-primary">sensors</span> Test Ping 1kHz
+          </button>
+</div>
+<!-- 4 PA Zone Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+<!-- Zone 1 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between gap-2">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Zona 1: Ruang Kelas</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gedung A &amp; Gedung B (16 Spk)</span>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-primary mt-1"></span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Normal / Siaga</span>
+<span class="font-code-time text-xs text-on-surface-variant">Line 70V</span>
+</div>
+</div>
+<!-- Zone 2 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between gap-2">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Zona 2: Lapangan Utama</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tribun &amp; Tiang Upacara (4 Horn)</span>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-primary mt-1"></span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Siap Senam/Upacara</span>
+<span class="font-code-time text-xs text-on-surface-variant">Line 100V</span>
+</div>
+</div>
+<!-- Zone 3 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between gap-2">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Zona 3: Selasar &amp; Kantin</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Koridor Tengah (6 Spk)</span>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-primary mt-1"></span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Normal / Siaga</span>
+<span class="font-code-time text-xs text-on-surface-variant">Line 70V</span>
+</div>
+</div>
+<!-- Zone 4 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between gap-2">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Zona 4: Guru &amp; TU</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ruang Staff &amp; Kepsek (4 Ceiling)</span>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-primary mt-1"></span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Normal / Siaga</span>
+<span class="font-code-time text-xs text-on-surface-variant">Line 70V</span>
+</div>
+</div>
+</div>
+<!-- Inline Audio Waveform Activity Graphic -->
+<div class="mt-4 p-3 rounded-lg bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">graphic_eq</span> Sinyal Output Master (VU Meter)
+            </span>
+<span class="font-label-sm text-label-sm text-outline" id="audio-stream-status">Output Senyap</span>
+</div>
+<!-- Dynamic SVG Waveform -->
+<div class="h-8 flex items-center gap-1 w-full px-1 overflow-hidden" id="vu-meter-bars">
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-3 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-4 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-5 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-3 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-6 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-4 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-3 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-5 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-4 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-3 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-4 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+<span class="h-2 w-1.5 bg-primary/40 rounded-full transition-all"></span>
+</div>
+</div>
+</div>
+<!-- Quick Switch Hardware Relay -->
+<div class="pt-3 flex items-center justify-between bg-surface-container-high/40 p-3 rounded-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">power</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-bold">Relay Power Amplifier Otomatis</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Menyala 3 detik sebelum bel berbunyi</span>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold">Auto-ON</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Client-side Scripting -->
+<script>
+  // Live Countdown Simulator
+  let secondsRemaining = 24 * 60 + 15;
+  const countdownEl = document.getElementById('countdown-timer');
+
+  if (countdownEl) {
+    setInterval(() => {
+      if (secondsRemaining > 0) {
+        secondsRemaining--;
+        const mins = Math.floor(secondsRemaining / 60);
+        const secs = secondsRemaining % 60;
+        countdownEl.innerText = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+      } else {
+        countdownEl.innerText = "00m 00s (SEDANG BERBUNYI)";
+      }
+    }, 1000);
+  }
+
+  // Character Counter for TTS
+  function updateCharCounter(el) {
+    const counter = document.getElementById('char-counter');
+    if (counter) {
+      counter.innerText = `${el.value.length} / 250 karakter`;
+    }
+  }
+
+  // Preset TTS Text Application
+  function applyPresetText(text) {
+    const textarea = document.getElementById('tts-input');
+    if (textarea) {
+      textarea.value = text;
+      updateCharCounter(textarea);
+      textarea.focus();
+    }
+  }
+
+  // Preset Audio Player Simulation
+  function playPreset(title) {
+    const label = document.getElementById('now-playing-label');
+    const badge = document.getElementById('player-status-badge');
+    const streamStatus = document.getElementById('audio-stream-status');
+    const vuBars = document.querySelectorAll('#vu-meter-bars span');
+
+    if (label && badge) {
+      label.innerText = `Memutar: ${title}`;
+      badge.className = 'w-2.5 h-2.5 rounded-full bg-primary animate-ping';
+      if (streamStatus) streamStatus.innerText = 'Audio Aktif (Siaran Berlangsung)';
+
+      // Animate VU bars
+      vuBars.forEach(bar => {
+        bar.classList.remove('bg-primary/40');
+        bar.classList.add('bg-primary');
+        bar.style.height = `${Math.floor(Math.random() * 22) + 8}px`;
+      });
+    }
+  }
+
+  // Stop Master Audio
+  function stopMasterAudio() {
+    const label = document.getElementById('now-playing-label');
+    const badge = document.getElementById('player-status-badge');
+    const streamStatus = document.getElementById('audio-stream-status');
+    const vuBars = document.querySelectorAll('#vu-meter-bars span');
+
+    if (label && badge) {
+      label.innerText = 'Player Siaga (Standby)';
+      badge.className = 'w-2.5 h-2.5 rounded-full bg-outline';
+      if (streamStatus) streamStatus.innerText = 'Output Senyap';
+
+      vuBars.forEach(bar => {
+        bar.classList.remove('bg-primary');
+        bar.classList.add('bg-primary/40');
+        bar.style.height = '8px';
+      });
+    }
+  }
+
+  // Volume Scrubber update
+  function updateVolume(val) {
+    const volIndicator = document.getElementById('vol-indicator');
+    if (volIndicator) {
+      volIndicator.innerText = `${val}%`;
+    }
+  }
+
+  // Set Zone Target Chip
+  function setZoneTarget(target) {
+    const chips = document.querySelectorAll('.target-chip');
+    chips.forEach(chip => {
+      chip.className = 'target-chip px-2.5 py-1 text-xs font-label-sm rounded bg-surface-container-lowest text-on-surface hover:bg-surface-variant font-medium';
+    });
+    event.currentTarget.className = 'target-chip active px-2.5 py-1 text-xs font-label-sm rounded bg-primary text-on-primary font-semibold';
+  }
+
+  // Preview Voice Action
+  function previewVoice() {
+    const textarea = document.getElementById('tts-input');
+    const msg = textarea && textarea.value.trim() ? textarea.value : "Perhatian, ini adalah contoh pratinjau uji suara BellSchool OS.";
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(msg);
+      utterance.lang = 'id-ID';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("Sintesis suara browser didukung.");
+    }
+  }
+
+  // Broadcast TTS Action
+  function broadcastTTS() {
+    const textarea = document.getElementById('tts-input');
+    if (!textarea || !textarea.value.trim()) {
+      alert("Silakan masukkan teks siaran terlebih dahulu atau pilih dari preset cepat.");
+      if (textarea) textarea.focus();
+      return;
+    }
+    playPreset(`Siaran Langsung: ${textarea.value.slice(0, 24)}...`);
+    previewVoice();
+  }
+
+  // Tone Test 1kHz Generator
+  function testTone1kHz() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1000, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 1.5);
+
+      // Visual reaction
+      const streamStatus = document.getElementById('audio-stream-status');
+      if (streamStatus) {
+        streamStatus.innerText = 'Test Ping 1kHz Terkirim (OK)';
+        setTimeout(() => {
+          streamStatus.innerText = 'Output Senyap';
+        }, 2000);
+      }
+    } catch(e) {
+      console.log('AudioContext not allowed without interaction');
+    }
+  }
+</script></main></div></body></html>

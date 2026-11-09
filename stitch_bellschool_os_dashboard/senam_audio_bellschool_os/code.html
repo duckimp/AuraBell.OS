@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#2c4a5e", "on-tertiary-container": "#ffb477", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "tertiary-container": "#7d4200", "secondary-fixed": "#c8e6ff", "on-primary-fixed": "#002018", "on-secondary-container": "#48667b", "primary": "#004335", "primary-fixed-dim": "#8fd4bd", "on-secondary-fixed": "#001e2e", "surface-variant": "#e0e3e5", "outline": "#6f7975", "inverse-primary": "#8fd4bd", "primary-fixed": "#aaf1d9", "on-surface": "#191c1e", "surface": "#f7f9fb", "surface-container-low": "#f2f4f6", "on-primary-fixed-variant": "#005140", "error-container": "#ffdad6", "inverse-surface": "#2d3133", "on-surface-variant": "#3f4945", "outline-variant": "#bfc9c3", "background": "#f7f9fb", "surface-container-high": "#e6e8ea", "on-primary-container": "#8cd2bb", "tertiary-fixed-dim": "#ffb77d", "inverse-on-surface": "#eff1f3", "on-primary": "#ffffff", "surface-container": "#eceef0", "on-background": "#191c1e", "secondary-fixed-dim": "#accae3", "surface-dim": "#d8dadc", "on-error-container": "#93000a", "secondary": "#446277", "surface-container-highest": "#e0e3e5", "secondary-container": "#c5e4fc", "error": "#ba1a1a", "tertiary-fixed": "#ffdcc3", "surface-tint": "#216a57", "primary-container": "#0d5c4a", "surface-bright": "#f7f9fb", "on-tertiary-fixed": "#2f1500", "tertiary": "#5c2f00", "on-tertiary-fixed-variant": "#6e3900", "on-error": "#ffffff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1.5rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-desktop": "1.5rem", "gutter": "1.25rem", "space-md": "1rem", "space-2xl": "3rem", "margin-desktop": "2rem" }, "fontFamily": { "code-time": [ "Manrope" ], "label-lg": [ "Plus Jakarta Sans" ], "headline-sm": [ "Plus Jakarta Sans" ], "body-sm": [ "Manrope" ], "headline-xl": [ "Plus Jakarta Sans" ], "label-sm": [ "Plus Jakarta Sans" ], "label-md": [ "Plus Jakarta Sans" ], "body-md": [ "Manrope" ], "body-lg": [ "Manrope" ], "headline-lg": [ "Plus Jakarta Sans" ], "headline-md": [ "Plus Jakarta Sans" ] }, "fontSize": { "code-time": [ "15px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" } ], "body-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" } ], "headline-xl": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-sm": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.005em", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" } ], "headline-md": [ "22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between overflow-y-auto"><div class="p-space-lg flex flex-col gap-space-md"><div class="flex items-center gap-space-sm pb-space-sm"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center shadow-sm text-on-primary"><span class="material-symbols-outlined text-[24px]">notifications_active</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">BellSchool OS</span><div class="flex items-center gap-1.5 mt-0.5"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Sistem Aktif - Online</span></div></div></div><div class="rounded-xl bg-surface-container-low p-space-md flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">school</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md text-on-surface font-semibold truncate">SMA Negeri 1 Teladan</span><span class="font-body-sm text-body-sm text-on-surface-variant truncate">ID: BSO-JKT-8821</span></div></div><div class="rounded-xl bg-primary text-on-primary p-space-md shadow-[0_4px_6px_-1px_rgba(13,92,74,0.06)]"><div class="flex items-center justify-between mb-1"><span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider">Waktu Sistem</span><span class="material-symbols-outlined text-[16px] text-on-primary-container">schedule</span></div><div class="font-code-time text-code-time text-2xl font-bold tracking-tight text-on-primary">07:28:45 <span class="text-xs font-normal text-on-primary-container">WIB</span></div><div class="font-body-sm text-body-sm text-on-primary-container mt-1">Senin, 17 Maret 2025</div></div><nav class="flex flex-col gap-1.5 pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold shadow-sm"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="jadwal-bel" href="#"><span class="material-symbols-outlined text-[22px]">alarm</span><span class="font-label-lg text-label-lg">Jadwal Bel</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="panggilan-tts" href="#"><span class="material-symbols-outlined text-[22px]">record_voice_over</span><span class="font-label-lg text-label-lg">Panggilan (TTS)</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="senam-audio" href="#"><span class="material-symbols-outlined text-[22px]">graphic_eq</span><span class="font-label-lg text-label-lg">Senam &amp; Audio</span></a></nav></div><div class="p-space-lg bg-surface-container-low/70 m-space-md rounded-xl flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">speaker_group</span>Status Audio</span><span class="w-1.5 h-1.5 rounded-full bg-primary"></span></div><div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">PA Speaker Hall A &amp; B</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-between pt-1"><span class="text-[11px]">Terhubung</span><span class="font-code-time text-xs text-primary font-bold">Vol: 85%</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-[18px] text-secondary">calendar_today</span><span class="font-label-md text-label-md text-on-surface font-semibold">T.A. 2024/2025 - Semester Genap</span></div><span class="hidden xl:inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>Automasi Bel Berjalan Sesuai Jadwal</span></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container px-space-md py-2 rounded-lg font-label-md text-label-md shadow-sm transition-colors duration-150 cursor-pointer" type="button"><span class="material-symbols-outlined text-[20px]">warning</span><span>Darurat: Bunyikan Bel</span></button><div class="h-6 w-[1px] bg-outline-variant/40"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Administrator</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Admin Operasional</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop py-space-lg"><div class="flex flex-col w-full pb-32">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs mb-1">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider bg-primary-fixed/40 px-2 py-0.5 rounded-full font-semibold">Modul Audio Siaran</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">PA System Lapangan &amp; Koridor</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">Pemutar Audio &amp; Musik Senam Sekolah</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Kelola daftar putar lagu senam kesegaran jasmani, lagu nasional, dan audio relaksasi sekolah.</p>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-lowest p-2 pr-4 rounded-xl shadow-sm self-start lg:self-auto">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">volume_up</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="font-label-md text-label-md text-primary font-bold">Speaker Lapangan Aktif</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mode Siar Stereo • 48kHz PA Zone A/B</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg mb-space-xl">
+<div class="xl:col-span-5 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Unggah File MP3 Lokal</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Format didukung: MP3, WAV, FLAC (Maks 45 MB)</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full">Offline Ready</span>
+</div>
+<div class="bg-surface-container-low/70 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-surface-container-low transition-colors duration-150 my-2">
+<div class="w-12 h-12 rounded-full bg-surface-container-lowest shadow-sm flex items-center justify-center text-primary mb-3">
+<span class="material-symbols-outlined text-[28px]">cloud_upload</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface font-bold">Tarik &amp; Letakkan Berkas Audio di Sini</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">atau klik untuk meramban penyimpanan komputer lokal sekolah</p>
+<div class="mt-4 flex items-center gap-2">
+<button class="bg-primary text-on-primary hover:bg-primary-container px-space-md py-2 rounded-lg font-label-md text-label-md shadow-sm transition-all flex items-center gap-1.5 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+            Pilih Berkas Audio
+          </button>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Auto-normalisasi kenyaringan suara (-14 LUFS)</span>
+</div>
+<span class="font-code-time text-code-time text-xs text-secondary">Local Storage: 14.2 GB Sisa</span>
+</div>
+</div>
+<div class="xl:col-span-7 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-error-container/60 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[20px]">smart_display</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Import dari URL YouTube (Auto-convert)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Konversi otomatis video senam / lagu upacara ke audio lokal</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-primary-fixed-variant bg-primary-fixed px-2 py-0.5 rounded-full font-bold">Cloud Synced</span>
+</div>
+<div class="bg-surface-container-low/50 rounded-xl p-space-md flex flex-col gap-3 my-2">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Tautan YouTube Video / Playlist</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">link</span>
+<input class="w-full pl-10 pr-24 py-2.5 bg-surface-container-lowest rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="https://www.youtube.com/watch?v=kXo9Wv_X18M atau short link..." type="text" value="https://www.youtube.com/watch?v=SKJ_2022_Resmi"/>
+<span class="absolute right-3 font-code-time text-xs text-primary font-bold bg-primary-fixed/50 px-1.5 py-0.5 rounded">VALID URL</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Kualitas Audio Hasil Konversi</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest rounded-lg py-2 px-3 pr-8 font-label-md text-label-md text-on-surface shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+<option value="320">Kualitas Tinggi - MP3 320 kbps (Disarankan)</option>
+<option value="256">Kualitas Standar - MP3 256 kbps</option>
+<option value="128">Hemat Penyimpanan - MP3 128 kbps</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Kategori Playlist Otomatis</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest rounded-lg py-2 px-3 pr-8 font-label-md text-label-md text-on-surface shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer">
+<option value="senam">Senam Pagi / Kesegaran Jasmani</option>
+<option value="nasional">Lagu Nasional &amp; Upacara</option>
+<option value="relaksasi">Musik Relaksasi &amp; Bel Istirahat</option>
+<option value="event">Acara Khusus &amp; Peringatan</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">cached</span>
+          Antrian downloader idle • Kecepatan server 100 Mbps
+        </span>
+<button class="bg-primary text-on-primary hover:bg-primary-container px-space-md py-2.5 rounded-lg font-label-md text-label-md shadow-sm transition-all flex items-center gap-2 cursor-pointer font-bold" type="button">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+          Konversi &amp; Tambahkan ke Playlist
+        </button>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-xs">
+<div class="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0" id="playlist-tabs">
+<button class="tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-primary text-on-primary shadow-sm flex items-center gap-2 font-bold cursor-pointer" data-category="all" type="button">
+<span class="material-symbols-outlined text-[18px]">queue_music</span>
+          Semua Lagu
+          <span class="px-1.5 py-0.2 bg-primary-container text-on-primary rounded text-xs">28</span>
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 cursor-pointer" data-category="senam" type="button">
+<span class="material-symbols-outlined text-[18px]">fitness_center</span>
+          Senam Pagi
+          <span class="px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded text-xs">8</span>
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 cursor-pointer" data-category="nasional" type="button">
+<span class="material-symbols-outlined text-[18px]">flag</span>
+          Lagu Nasional &amp; Wajib
+          <span class="px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded text-xs">12</span>
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 cursor-pointer" data-category="relaksasi" type="button">
+<span class="material-symbols-outlined text-[18px]">spa</span>
+          Musik Relaksasi / Istirahat
+          <span class="px-1.5 py-0.2 bg-surface-container-highest text-on-surface-variant rounded text-xs">8</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2 text-outline text-[18px]">search</span>
+<input class="pl-9 pr-3 py-1.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary w-56" placeholder="Cari judul lagu, artis..." type="text"/>
+</div>
+<button class="p-2 bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant rounded-lg transition-colors cursor-pointer" title="Urutkan" type="button">
+<span class="material-symbols-outlined text-[20px]">sort</span>
+</button>
+<button class="p-2 bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant rounded-lg transition-colors cursor-pointer" title="Refresh Koleksi" type="button">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto -mx-space-lg px-space-lg">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container-low/70 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-3 px-4 rounded-l-lg w-14 text-center">#</th>
+<th class="py-3 px-4">Judul Lagu &amp; Sumber Artis</th>
+<th class="py-3 px-4">Kategori</th>
+<th class="py-3 px-4 text-center">Durasi</th>
+<th class="py-3 px-4 text-center">Ukuran / Bitrate</th>
+<th class="py-3 px-4">Terakhir Diputar</th>
+<th class="py-3 px-4 text-right rounded-r-lg">Aksi Kontrol</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low" id="track-table-body">
+<tr class="hover:bg-surface-container-low/50 transition-colors group bg-primary-fixed/15">
+<td class="py-3.5 px-4 text-center">
+<button class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform mx-auto cursor-pointer" title="Sedang Diputar" type="button">
+<span class="material-symbols-outlined text-[18px]">equalizer</span>
+</button>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden relative shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Vibrant energizing illustration of energetic Indonesian high school students exercising outdoors during morning physical education with warm sunlight and tropical school field backdrop in emerald green tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHIbJqqPf5u1sjQJxn8YllzoPWKRKMGl2oDr52RdRwN0U-dNkZOqoiN11UVN19tLIsEgWbgIxHBNWyeTh5BskOTs00i8z9qsXGwdCsZMEJtVhRI_JNAsfcQUxIoLrTpoEzVJSla9sRfyluNXZ6kUwSGWSM1uFKMplnnTbcUfVuNpprOG4uMNulUTvf9YdBfMwqwS5mUEBQ5G2tDXBcFTuqpWkjCBgm7sVbiPUOFGqQ"/>
+<div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
+<span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-primary font-bold truncate">Senam Kesegaran Jasmani (SKJ) 2022</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-container/20 px-1.5 py-0.2 rounded font-bold uppercase tracking-tight">YouTube</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Kemenpora RI • Versi Resmi Pelajar</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-2.5 py-1 rounded-full">Senam Pagi</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-code-time text-code-time text-sm font-semibold text-on-surface">06:45</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<div class="flex flex-col items-center">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">6.2 MB</span>
+<span class="text-[10px] text-on-surface-variant font-code-time">320 kbps</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm font-semibold text-primary">Hari ini, 07:00 WIB</span>
+<span class="text-[11px] text-on-surface-variant">Siar Lapangan Utama</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-colors cursor-pointer" title="Sedang Aktif" type="button">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Tambah ke Antrian" type="button">
+<span class="material-symbols-outlined text-[18px]">playlist_add</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Pengaturan Audio" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors cursor-pointer" title="Hapus Berkas" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant flex items-center justify-center transition-colors mx-auto cursor-pointer" title="Putar" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden relative shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Traditional and contemporary Indonesian dance students performing Maumere rhythm gymnastics on a clean paved school assembly yard with clear blue morning sky and modern architecture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ-8t2DZUIqS9-9XxRY5ulZmDhEbhBb9tt5MNDk4ZNpPdcNibATA_L5I5C9u7e3TkgvX0XbMjQ2N4_qPB1iq37ViWmFgYPg_8sOPwA8A_idwYZPF10LXe-cQeqgBvrtIlU5DYpmaYL-vZHHCH21RoiPQTNfXlFGYSzc7uLolaYQIjCqvReKgyEaRW780qWdtqW8f1BMD8ytPjG10AUhkDcZg9cF3fWgKXliyqq3ONt"/>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Senam Maumere Versi Sekolah</span>
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-1.5 py-0.2 rounded uppercase tracking-tight">Lokal MP3</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Sanggar Seni Pelajar • Beat Up-tempo</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-2.5 py-1 rounded-full">Senam Pagi</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-code-time text-code-time text-sm font-semibold text-on-surface">04:12</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<div class="flex flex-col items-center">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">4.1 MB</span>
+<span class="text-[10px] text-on-surface-variant font-code-time">320 kbps</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Jumat, 14 Mar 2025</span>
+<span class="text-[11px] text-on-surface-variant">07:15 WIB</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg hover:bg-primary-container hover:text-on-primary text-primary transition-colors cursor-pointer" title="Putar Sekarang" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Tambah ke Antrian" type="button">
+<span class="material-symbols-outlined text-[18px]">playlist_add</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Pengaturan Audio" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors cursor-pointer" title="Hapus Berkas" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant flex items-center justify-center transition-colors mx-auto cursor-pointer" title="Putar" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden relative shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Majestic red and white flag fluttering proudly in front of a modern Indonesian high school pavilion with grand morning light and crisp cinematic contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVJXZhv2R0SfhQIQsl3VvSSM5VaC3DQwFRXn5J0NN9-2Nn1YcX6tL4xcLihL7vrT4kvZRsaRKpixN096WgiheqViA0FZP78I5DorzKu1XUSic5jfWIeNg2CgkBK1-jeBYexrh3qeTUUxl0dOs8FLulbt_stfhO_-wFJoPD07gooUV18V19-0q4BaoP2vyCs5Irv1hINT6wxqBhkbdpJn8Wg19RdmFqqmooJgxyrDLC"/>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Indonesia Raya (3 Stanza Komplit)</span>
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-1.5 py-0.2 rounded uppercase tracking-tight">Lokal MP3</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Orkes Simfoni Nasional • Rekaman Resmi Kemendikbud</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-sm text-label-sm text-secondary font-bold bg-secondary-fixed/50 px-2.5 py-1 rounded-full">Lagu Wajib</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-code-time text-code-time text-sm font-semibold text-on-surface">03:15</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<div class="flex flex-col items-center">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">7.8 MB</span>
+<span class="text-[10px] text-on-surface-variant font-code-time">320 kbps</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Senin, 17 Mar 2025</span>
+<span class="text-[11px] text-on-surface-variant">06:55 WIB (Upacara)</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg hover:bg-primary-container hover:text-on-primary text-primary transition-colors cursor-pointer" title="Putar Sekarang" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Tambah ke Antrian" type="button">
+<span class="material-symbols-outlined text-[18px]">playlist_add</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Pengaturan Audio" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors cursor-pointer" title="Hapus Berkas" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant flex items-center justify-center transition-colors mx-auto cursor-pointer" title="Putar" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[22px]">music_note</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Rayuan Pulau Kelapa (Akustik Instrumental)</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-container/20 px-1.5 py-0.2 rounded font-bold uppercase tracking-tight">YouTube</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Ismail Marzuki • Petikan Gitar Lembut</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-sm text-label-sm text-on-tertiary-fixed-variant bg-tertiary-fixed px-2.5 py-1 rounded-full font-bold">Background Audio</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-code-time text-code-time text-sm font-semibold text-on-surface">02:50</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<div class="flex flex-col items-center">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">3.4 MB</span>
+<span class="text-[10px] text-on-surface-variant font-code-time">256 kbps</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Kemarin</span>
+<span class="text-[11px] text-on-surface-variant">11:45 WIB (Istirahat 1)</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg hover:bg-primary-container hover:text-on-primary text-primary transition-colors cursor-pointer" title="Putar Sekarang" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Tambah ke Antrian" type="button">
+<span class="material-symbols-outlined text-[18px]">playlist_add</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Pengaturan Audio" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors cursor-pointer" title="Hapus Berkas" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-3.5 px-4 text-center">
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant flex items-center justify-center transition-colors mx-auto cursor-pointer" title="Putar" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[22px]">notifications_paused</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Nada Lonceng Relaksasi Bel Break</span>
+<span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed/40 px-1.5 py-0.2 rounded uppercase tracking-tight">Lokal MP3</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">BellSchool Sound Library • Chime &amp; Ambient Rain</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-sm text-label-sm text-on-tertiary-fixed-variant bg-tertiary-fixed px-2.5 py-1 rounded-full font-bold">Relaksasi Break</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-code-time text-code-time text-sm font-semibold text-on-surface">05:20</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<div class="flex flex-col items-center">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">5.1 MB</span>
+<span class="text-[10px] text-on-surface-variant font-code-time">320 kbps</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">12 Mar 2025</span>
+<span class="text-[11px] text-on-surface-variant">14:00 WIB</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg hover:bg-primary-container hover:text-on-primary text-primary transition-colors cursor-pointer" title="Putar Sekarang" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Tambah ke Antrian" type="button">
+<span class="material-symbols-outlined text-[18px]">playlist_add</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Pengaturan Audio" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors cursor-pointer" title="Hapus Berkas" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-2">
+<span>Menampilkan 5 dari 28 audio sekolah</span>
+<span class="text-outline-variant">•</span>
+<span>Total durasi playlist senam aktif: 42 menit 10 detik</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface-variant disabled:opacity-50 font-label-md text-label-md" type="button">Sebelumnya</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center font-bold" type="button">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center" type="button">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center" type="button">3</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md" type="button">Selanjutnya</button>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-72 right-0 bg-surface-container-lowest shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-40 px-gutter-desktop py-3">
+<div class="flex flex-col lg:flex-row items-center justify-between gap-3 max-w-7xl mx-auto">
+<div class="flex items-center gap-3 w-full lg:w-1/4 shrink-0">
+<div class="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Cover artwork album for SKJ 2022 morning gymnastics music featuring stylized fitness emblems with emerald and mint geometric flourishes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3Y4H0fJykrnVVv4s6cUBhjKtbMLbDUfDL4pqcH8P1sJJ1iQeyDnkSuCIX8FBB3kEutIB19qyr8ieTJ_Q6zmQgo6IRPc_V1qq_lM-dYAZM5cTs8gVb3PUs837mueg2647h-2_DNDizJglCXumMIVqNfhRgq4lWcL5sV0iPOIEfOWZYAcEK0EmHYqo3wfmr44NJwG70fODjjlSFSncNbZ9o8b4_GmJ7iI_EEEXXzwz0"/>
+<div class="absolute inset-0 bg-primary/25 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[20px] animate-pulse">music_note</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">Senam Kesegaran Jasmani (SKJ) 2022</span>
+<div class="flex items-end gap-0.5 h-3 shrink-0">
+<span class="w-0.5 h-3 bg-primary animate-bounce"></span>
+<span class="w-0.5 h-2 bg-primary animate-bounce delay-75"></span>
+<span class="w-0.5 h-3.5 bg-primary animate-bounce delay-150"></span>
+</div>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Kemenpora RI • Siaran Terkoneksi</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1.5 w-full lg:w-2/4">
+<div class="flex items-center gap-space-md">
+<button class="p-1 text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Acak Putaran" type="button">
+<span class="material-symbols-outlined text-[20px]">shuffle</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Sebelumnya" type="button">
+<span class="material-symbols-outlined text-[22px]">skip_previous</span>
+</button>
+<button class="w-11 h-11 rounded-full bg-primary text-on-primary hover:bg-primary-container shadow-md flex items-center justify-center transition-transform hover:scale-105 cursor-pointer" id="main-play-toggle" title="Jeda Audio" type="button">
+<span class="material-symbols-outlined text-[26px]">pause</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Selanjutnya" type="button">
+<span class="material-symbols-outlined text-[22px]">skip_next</span>
+</button>
+<button class="p-1 text-primary transition-colors cursor-pointer" title="Ulangi Lagu Ini" type="button">
+<span class="material-symbols-outlined text-[20px]">repeat</span>
+</button>
+</div>
+<div class="w-full flex items-center gap-3">
+<span class="font-code-time text-code-time text-xs text-on-surface-variant font-semibold w-10 text-right">02:15</span>
+<div class="relative w-full h-1.5 bg-surface-container rounded-full cursor-pointer group flex items-center">
+<div class="h-full bg-primary rounded-full" style="width: 33.3%;"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-white shadow-md absolute left-[33.3%] -ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+</div>
+<span class="font-code-time text-code-time text-xs text-on-surface-variant font-semibold w-10">06:45</span>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 w-full lg:w-1/4 shrink-0">
+<div class="relative hidden sm:block">
+<select class="bg-surface-container-low rounded-lg py-1.5 px-2.5 pr-7 font-label-sm text-label-sm text-on-surface focus:outline-none cursor-pointer appearance-none">
+<option>Speaker Lapangan Utama</option>
+<option>Semua Koridor Kelas</option>
+<option>Aula Indoor Lt. 2</option>
+<option>Ruang Guru &amp; Piket</option>
+</select>
+<span class="material-symbols-outlined absolute right-1.5 top-2 text-on-surface-variant pointer-events-none text-[16px]">arrow_drop_down</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Bisu / Nyalakan" type="button">
+<span class="material-symbols-outlined text-[20px]">volume_up</span>
+</button>
+<input class="w-20 accent-primary cursor-pointer h-1.5 bg-surface-container rounded-lg" max="100" min="0" title="Volume Suara: 85%" type="range" value="85"/>
+<span class="font-code-time text-code-time text-xs text-primary font-bold w-7">85%</span>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" title="Layar Penuh Pemutar Senam" type="button">
+<span class="material-symbols-outlined text-[20px]">open_in_full</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const playToggleBtn = document.getElementById('main-play-toggle');
+    if (playToggleBtn) {
+      let isPlaying = true;
+      playToggleBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        const icon = playToggleBtn.querySelector('.material-symbols-outlined');
+        if (icon) {
+          icon.textContent = isPlaying ? 'pause' : 'play_arrow';
+        }
+      });
+    }
+
+    const tabButtons = document.querySelectorAll('#playlist-tabs .tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => {
+          b.className = 'tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 cursor-pointer';
+        });
+        btn.className = 'tab-btn px-4 py-2 rounded-lg font-label-md text-label-md bg-primary text-on-primary shadow-sm flex items-center gap-2 font-bold cursor-pointer';
+      });
+    });
+  });
+</script></main></div></body></html>

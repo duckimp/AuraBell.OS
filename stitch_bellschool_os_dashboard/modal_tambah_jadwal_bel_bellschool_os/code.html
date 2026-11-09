@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#2c4a5e", "on-tertiary-container": "#ffb477", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "tertiary-container": "#7d4200", "secondary-fixed": "#c8e6ff", "on-primary-fixed": "#002018", "on-secondary-container": "#48667b", "primary": "#004335", "primary-fixed-dim": "#8fd4bd", "on-secondary-fixed": "#001e2e", "surface-variant": "#e0e3e5", "outline": "#6f7975", "inverse-primary": "#8fd4bd", "primary-fixed": "#aaf1d9", "on-surface": "#191c1e", "surface": "#f7f9fb", "surface-container-low": "#f2f4f6", "on-primary-fixed-variant": "#005140", "error-container": "#ffdad6", "inverse-surface": "#2d3133", "on-surface-variant": "#3f4945", "outline-variant": "#bfc9c3", "background": "#f7f9fb", "surface-container-high": "#e6e8ea", "on-primary-container": "#8cd2bb", "tertiary-fixed-dim": "#ffb77d", "inverse-on-surface": "#eff1f3", "on-primary": "#ffffff", "surface-container": "#eceef0", "on-background": "#191c1e", "secondary-fixed-dim": "#accae3", "surface-dim": "#d8dadc", "on-error-container": "#93000a", "secondary": "#446277", "surface-container-highest": "#e0e3e5", "secondary-container": "#c5e4fc", "error": "#ba1a1a", "tertiary-fixed": "#ffdcc3", "surface-tint": "#216a57", "primary-container": "#0d5c4a", "surface-bright": "#f7f9fb", "on-tertiary-fixed": "#2f1500", "tertiary": "#5c2f00", "on-tertiary-fixed-variant": "#6e3900", "on-error": "#ffffff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1.5rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-desktop": "1.5rem", "gutter": "1.25rem", "space-md": "1rem", "space-2xl": "3rem", "margin-desktop": "2rem" }, "fontFamily": { "code-time": [ "Manrope" ], "label-lg": [ "Plus Jakarta Sans" ], "headline-sm": [ "Plus Jakarta Sans" ], "body-sm": [ "Manrope" ], "headline-xl": [ "Plus Jakarta Sans" ], "label-sm": [ "Plus Jakarta Sans" ], "label-md": [ "Plus Jakarta Sans" ], "body-md": [ "Manrope" ], "body-lg": [ "Manrope" ], "headline-lg": [ "Plus Jakarta Sans" ], "headline-md": [ "Plus Jakarta Sans" ] }, "fontSize": { "code-time": [ "15px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" } ], "body-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" } ], "headline-xl": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-sm": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "20px", "letterSpacing": "0.005em", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "700" } ], "headline-md": [ "22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between overflow-y-auto"><div class="p-space-lg flex flex-col gap-space-md"><div class="flex items-center gap-space-sm pb-space-sm"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center shadow-sm text-on-primary"><span class="material-symbols-outlined text-[24px]">notifications_active</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">BellSchool OS</span><div class="flex items-center gap-1.5 mt-0.5"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Sistem Aktif - Online</span></div></div></div><div class="rounded-xl bg-surface-container-low p-space-md flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">school</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md text-on-surface font-semibold truncate">SMA Negeri 1 Teladan</span><span class="font-body-sm text-body-sm text-on-surface-variant truncate">ID: BSO-JKT-8821</span></div></div><div class="rounded-xl bg-primary text-on-primary p-space-md shadow-[0_4px_6px_-1px_rgba(13,92,74,0.06)]"><div class="flex items-center justify-between mb-1"><span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider">Waktu Sistem</span><span class="material-symbols-outlined text-[16px] text-on-primary-container">schedule</span></div><div class="font-code-time text-code-time text-2xl font-bold tracking-tight text-on-primary">07:28:45 <span class="text-xs font-normal text-on-primary-container">WIB</span></div><div class="font-body-sm text-body-sm text-on-primary-container mt-1">Senin, 17 Maret 2025</div></div><nav class="flex flex-col gap-1.5 pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold shadow-sm"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-all duration-150 bg-primary-container text-on-primary font-bold shadow-sm" data-path="jadwal-bel" href="#"><span class="material-symbols-outlined text-[22px]">alarm</span><span class="font-label-lg text-label-lg">Jadwal Bel</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="panggilan-tts" href="#"><span class="material-symbols-outlined text-[22px]">record_voice_over</span><span class="font-label-lg text-label-lg">Panggilan (TTS)</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="senam-audio" href="#"><span class="material-symbols-outlined text-[22px]">graphic_eq</span><span class="font-label-lg text-label-lg">Senam &amp; Audio</span></a></nav></div><div class="p-space-lg bg-surface-container-low/70 m-space-md rounded-xl flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant font-medium flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">speaker_group</span>Status Audio</span><span class="w-1.5 h-1.5 rounded-full bg-primary"></span></div><div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">PA Speaker Hall A &amp; B</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-between pt-1"><span class="text-[11px]">Terhubung</span><span class="font-code-time text-xs text-primary font-bold">Vol: 85%</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-md py-1.5 rounded-full"><span class="material-symbols-outlined text-[18px] text-secondary">calendar_today</span><span class="font-label-md text-label-md text-on-surface font-semibold">T.A. 2024/2025 - Semester Genap</span></div><span class="hidden xl:inline-flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>Automasi Bel Berjalan Sesuai Jadwal</span></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-2 bg-error text-on-error hover:bg-error-container hover:text-on-error-container px-space-md py-2 rounded-lg font-label-md text-label-md shadow-sm transition-colors duration-150 cursor-pointer" type="button"><span class="material-symbols-outlined text-[20px]">warning</span><span>Darurat: Bunyikan Bel</span></button><div class="h-6 w-[1px] bg-outline-variant/40"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Administrator</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Admin Operasional</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop py-space-lg"><div class="flex flex-col w-full gap-space-lg">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider mb-1">
+<span>Otomasi Suara</span>
+<span>•</span>
+<span>Modul Utama</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight font-bold">
+        Manajemen Jadwal Bel Sekolah
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5 max-w-2xl">
+        Atur otomasi bel pergantian jam pelajaran, istirahat, dan kegiatan sekolah terintegrasi dengan zona PA System.
+      </p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm self-start lg:self-center">
+<button class="group flex items-center gap-2 bg-surface-container-lowest text-secondary hover:bg-surface-container hover:text-on-surface px-space-md py-2.5 rounded-lg font-label-md text-label-md shadow-sm transition-all duration-150 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary group-hover:rotate-180 transition-transform duration-500">sync</span>
+<span>Sinkronisasi NTP</span>
+</button>
+<button class="flex items-center gap-2 bg-surface-container-lowest text-secondary hover:bg-surface-container hover:text-on-surface px-space-md py-2.5 rounded-lg font-label-md text-label-md shadow-sm transition-all duration-150 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Ekspor Jadwal</span>
+</button>
+<button class="flex items-center gap-2 bg-primary-container text-on-primary hover:bg-primary px-space-lg py-2.5 rounded-lg font-label-md text-label-md shadow-[0_4px_12px_rgba(13,92,74,0.18)] hover:shadow-md transition-all duration-150 cursor-pointer" id="btn-add-schedule" type="button">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>+ Tambah Jadwal</span>
+</button>
+</div>
+</div>
+<div class="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm p-space-md flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex items-start sm:items-center gap-space-md pl-2">
+<div class="relative flex items-center justify-center w-12 h-12 rounded-xl bg-primary-fixed/40 text-primary shrink-0">
+<span class="material-symbols-outlined text-[26px]">notifications_active</span>
+<span class="absolute -top-1 -right-1 flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-label-sm text-label-sm uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
+            Bel Berikutnya
+          </span>
+<span class="font-code-time text-code-time text-primary text-base font-bold">
+            09:45 WIB
+          </span>
+<span class="text-on-surface-variant font-body-sm text-body-sm hidden sm:inline">•</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">
+            Istirahat Pertama
+          </span>
+</div>
+<div class="flex items-center gap-2 mt-1 text-on-surface-variant font-body-sm text-body-sm flex-wrap">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">audiotrack</span>
+<code class="font-code-time text-xs bg-surface-container px-1.5 py-0.5 rounded text-on-surface">Chime_Melodi_01.mp3</code>
+</span>
+<span>•</span>
+<span>Target Ruang: <strong>Seluruh Koridor &amp; Kelas</strong></span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pl-2 md:pl-0 w-full md:w-auto justify-between md:justify-end">
+<div class="flex flex-col text-left md:text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Hitung Mundur</span>
+<span class="font-code-time text-code-time text-tertiary-container text-lg font-bold">
+          24 Menit 15 Detik
+        </span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">skip_next</span>
+<span>Lewati</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md bg-surface-container-lowest p-space-sm rounded-xl shadow-sm">
+<div class="flex items-center gap-1.5 overflow-x-auto p-1">
+<button class="schedule-tab flex items-center gap-2 bg-primary text-on-primary font-label-md text-label-md px-space-md py-2 rounded-lg shadow-sm whitespace-nowrap cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span>Jadwal Reguler</span>
+<span class="ml-1 text-xs bg-primary-fixed/20 text-on-primary px-1.5 py-0.2 rounded-full">10 Bel</span>
+</button>
+<button class="schedule-tab flex items-center gap-2 bg-transparent hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-label-md text-label-md px-space-md py-2 rounded-lg transition-colors whitespace-nowrap cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px]">assignment</span>
+<span>Jadwal Ujian</span>
+</button>
+<button class="schedule-tab flex items-center gap-2 bg-transparent hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-label-md text-label-md px-space-md py-2 rounded-lg transition-colors whitespace-nowrap cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[18px]">nights_stay</span>
+<span>Jadwal Ramadan</span>
+</button>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-space-sm px-1">
+<div class="relative w-full sm:w-48">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">event</span>
+<select class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md pl-9 pr-8 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none transition-colors">
+<option value="senin-kamis">Senin - Kamis</option>
+<option value="jumat">Khusus Hari Jumat</option>
+<option value="sabtu">Sabtu (Ekstrakulikuler)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative w-full sm:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-md text-body-md pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:bg-surface-container transition-colors" placeholder="Cari jam / aktivitas bel..." type="text"/>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<tr>
+<th class="py-3.5 px-6 font-bold w-44" scope="col">Waktu (WIB)</th>
+<th class="py-3.5 px-6 font-bold" scope="col">Keterangan Aktivitas</th>
+<th class="py-3.5 px-6 font-bold w-72" scope="col">File Audio &amp; Durasi</th>
+<th class="py-3.5 px-6 font-bold text-center w-28" scope="col">Status</th>
+<th class="py-3.5 px-6 font-bold text-right w-36" scope="col">Aksi</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low font-body-md text-body-md text-on-surface">
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">06:45</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Pagi</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Masuk Sekolah &amp; Apel Pagi</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Seluruh siswa berkumpul di lapangan utama</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="bel_masuk_harmoni.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">bel_masuk_harmoni.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">12d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">07:00</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Pagi</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Jam Pelajaran 1 Dimulai</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Lagu Indonesia Raya 3 Stanza via PA System</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="nada_lagu_kebangsaan.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">nada_lagu_kebangsaan.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">1m 45d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">07:45</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Pagi</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Pergantian Jam Ke-2</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Transisi mata pelajaran tanpa istirahat</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="nada_pergantian_3tone.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">nada_pergantian_3tone.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">8d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">08:30</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Pagi</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Pergantian Jam Ke-3</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Pemberitahuan guru piket pergantian guru mapel</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="nada_pergantian_3tone.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">nada_pergantian_3tone.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">8d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Imminent next bell highlighted -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-primary font-bold">09:45</div>
+<span class="font-label-sm text-[10px] bg-primary text-on-primary px-2 py-0.5 rounded-full font-bold uppercase animate-pulse">Berikutnya</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-primary font-bold flex items-center gap-2">
+<span>Istirahat Pertama</span>
+<span class="material-symbols-outlined text-[16px]">restaurant</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Durasi istirahat 30 menit santai kantin</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-sm max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="Chime_Melodi_01.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-primary font-semibold truncate">Chime_Melodi_01.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">15d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-primary hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">10:15</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Pagi</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Jam Pelajaran 4 (Masuk Kelas)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Siswa selesai istirahat kembali ke ruang belajar</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="bel_masuk_harmoni.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">bel_masuk_harmoni.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">12d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">11:45</div>
+<span class="font-label-sm text-[10px] bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Siang</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Istirahat Kedua &amp; Sholat Dzuhur</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Persiapan ibadah berjamaah di Masjid Sekolah</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="beduk_dzuhur_chime.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">beduk_dzuhur_chime.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">22d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">12:30</div>
+<span class="font-label-sm text-[10px] bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Siang</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Jam Pelajaran 6 (Sesi Siang)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Lanjutan proses belajar mengajar pasca ibadah</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="bel_masuk_harmoni.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">bel_masuk_harmoni.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">12d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-2.5">
+<div class="font-code-time text-code-time text-base text-on-surface font-bold">15:00</div>
+<span class="font-label-sm text-[10px] bg-secondary-container/40 text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-bold uppercase">Sore</span>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Bel Pulang Sekolah</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Akhir kegiatan KBM reguler siswa &amp; doa penutup</div>
+</td>
+<td class="py-4 px-6">
+<div class="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg max-w-full">
+<button class="preview-btn w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:scale-105 transition-transform" data-sound="bel_pulang_ceria_mars.mp3" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<span class="font-code-time text-xs text-on-surface truncate">bel_pulang_ceria_mars.mp3</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant shrink-0">18d</span>
+</div>
+</td>
+<td class="py-4 px-6 text-center">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100">
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Edit" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg hover:bg-error-container/40 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Hapus" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-3 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-body-sm text-body-sm gap-2">
+<div class="flex items-center gap-2">
+<span>Menampilkan <strong>8 dari 8</strong> baris jadwal untuk profil aktif</span>
+<span class="text-xs bg-surface-container px-2 py-0.5 rounded-full font-code-time">Sinkron 100%</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-xs">Zona Audio: </span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Semua Kelas, Selasar, &amp; Lapangan</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">volume_up</span>
+            Uji Suara Bel Manual
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Bunyikan audio secara instan ke amplifier PA sekolah untuk tes kejernihan nada atau simulasi bel darurat.
+          </p>
+</div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant shrink-0">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+          PA Hardware Ready
+        </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md items-end">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold">Pilih File Sampel</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md px-3 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none transition-colors" id="quick-test-sound">
+<option value="Chime_Melodi_01.mp3">Chime_Melodi_01.mp3 (15s)</option>
+<option value="bel_masuk_harmoni.mp3">bel_masuk_harmoni.mp3 (12s)</option>
+<option value="nada_pergantian_3tone.mp3">nada_pergantian_3tone.mp3 (8s)</option>
+<option value="bel_pulang_ceria_mars.mp3">bel_pulang_ceria_mars.mp3 (18s)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold">Target Zona Uji</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md px-3 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none transition-colors">
+<option value="all">Semua Ruangan (Master)</option>
+<option value="ruang-guru">Hanya Ruang Guru &amp; Piket</option>
+<option value="lapangan">Hanya Lapangan Utama</option>
+<option value="gedung-a">Gedung Kelas A &amp; B</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary-container text-on-primary hover:bg-primary font-label-md text-label-md py-2.5 px-4 rounded-lg shadow-sm transition-all duration-150 cursor-pointer" id="btn-quick-play" type="button">
+<span class="material-symbols-outlined text-[20px]" id="play-test-icon">play_arrow</span>
+<span id="play-test-text">Uji Suara Sekarang</span>
+</button>
+<button class="flex items-center justify-center bg-surface-container hover:bg-surface-container-high text-on-surface p-2.5 rounded-lg transition-colors cursor-pointer" id="btn-quick-stop" title="Hentikan Tes" type="button">
+<span class="material-symbols-outlined text-[20px]">stop</span>
+</button>
+</div>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-low/50 rounded-lg p-3 flex items-center justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]">graphic_eq</span>
+<span id="player-status-line">Status player: Menganggur (Siap bunyikan)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">volume_down</span>
+<input class="w-24 accent-primary cursor-pointer h-1.5 bg-surface-variant rounded-lg" max="100" min="0" type="range" value="85"/>
+<span class="font-code-time text-xs text-on-surface font-semibold">85%</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Statistik Otomasi</h2>
+<span class="material-symbols-outlined text-primary text-[20px]">insights</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+          Ringkasan eksekusi jadwal hari ini (Senin, 17 Maret 2025).
+        </p>
+<div class="grid grid-cols-2 gap-space-sm mb-space-md">
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total Terjadwal</span>
+<span class="font-code-time text-code-time text-2xl font-bold text-on-surface mt-1">10 Bel</span>
+</div>
+<div class="bg-primary/10 p-space-sm rounded-lg flex flex-col">
+<span class="font-body-sm text-body-sm text-primary">Sudah Berbunyi</span>
+<span class="font-code-time text-code-time text-2xl font-bold text-primary mt-1">4 Bel</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between text-xs font-semibold">
+<span class="text-on-surface-variant">Progress Jadwal Harian</span>
+<span class="text-primary font-code-time">40% Selesai</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full w-[40%] transition-all duration-300"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between text-on-surface-variant text-xs">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">check_circle</span>
+          NTP Time Sync OK
+        </span>
+<span class="font-code-time">Delay &lt; 12ms</span>
+</div>
+</div>
+</div>
+<!-- Modal Mockup: Tambah/Edit Jadwal (Toggled via JS) -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" id="schedule-modal"><div class="bg-surface-container-lowest w-full max-w-2xl rounded-xl shadow-2xl p-space-lg flex flex-col gap-space-md animate-in fade-in zoom-in-95 duration-200 border border-surface-container my-auto"><div class="flex items-start justify-between pb-space-xs border-b border-surface-container-low"><div class="flex items-start gap-space-sm"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm shrink-0 mt-0.5"><span class="material-symbols-outlined text-[24px]">alarm_add</span></div><div class="flex flex-col"><h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Tambah Jadwal Bel Baru</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Atur waktu, nama kegiatan, dan file nada bel yang akan dibunyikan otomatis.</p></div></div><button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer shrink-0" id="btn-close-modal" onclick="document.getElementById('schedule-modal').classList.add('hidden')" type="button"><span class="material-symbols-outlined text-[20px]">close</span></button></div><div class="flex flex-col gap-space-md py-1"><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold">Kategori Profil Jadwal</label><div class="flex items-center gap-2 flex-wrap"><button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer" type="button"><span class="material-symbols-outlined text-[16px]">calendar_month</span><span>Jadwal Reguler</span></button><button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors flex items-center gap-1.5 cursor-pointer" type="button"><span class="material-symbols-outlined text-[16px]">assignment</span><span>Jadwal Ujian</span></button><button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors flex items-center gap-1.5 cursor-pointer" type="button"><span class="material-symbols-outlined text-[16px]">nights_stay</span><span>Jadwal Ramadan</span></button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-space-md"><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold flex items-center justify-between"><span>Jam Pelaksanaan (WIB)</span><span class="text-[11px] font-normal text-on-surface-variant">Format 24 Jam</span></label><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-secondary text-[20px] pointer-events-none">schedule</span><input class="w-full bg-surface-container-low text-on-surface font-code-time text-base pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:bg-surface-container font-bold" type="time" value="10:15"/></div></div><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold">Sesi Hari</label><div class="relative"><select class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md pl-3 pr-8 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none transition-colors"><option selected="" value="pagi">Sesi Pagi (06:00 - 11:30 WIB)</option><option value="siang">Sesi Siang (11:30 - 14:30 WIB)</option><option value="sore">Sesi Sore (14:30 - 17:00 WIB)</option></select><span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span></div></div></div><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold">Keterangan / Nama Kegiatan Bel</label><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">edit_note</span><input class="w-full bg-surface-container-low text-on-surface font-body-md text-body-md pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:bg-surface-container placeholder:text-on-surface-variant" placeholder="Contoh: Masuk Kelas, Pergantian Jam, Istirahat..." type="text" value="Jam Pelajaran 4 (Masuk Kelas)"/></div></div><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold flex items-center justify-between"><span>Pilihan Nada / File Audio Bel</span><button class="font-label-sm text-[11px] text-primary font-bold hover:underline flex items-center gap-1 cursor-pointer" type="button"><span class="material-symbols-outlined text-[14px]">upload_file</span>+ Upload Custom Audio</button></label><div class="flex items-center gap-2"><div class="relative flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">audiotrack</span><select class="w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md pl-9 pr-8 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none transition-colors"><option selected="" value="bel_masuk_harmoni.mp3">bel_masuk_harmoni.mp3 (12 detik)</option><option value="Chime_Melodi_01.mp3">Chime_Melodi_01.mp3 (15 detik)</option><option value="nada_pergantian_3tone.mp3">nada_pergantian_3tone.mp3 (8 detik)</option><option value="bel_pulang_ceria_mars.mp3">bel_pulang_ceria_mars.mp3 (18 detik)</option></select><span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span></div><button class="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2 rounded-lg font-label-md text-label-md transition-colors shrink-0 cursor-pointer" title="Uji Dengar Nada Bel" type="button"><span class="material-symbols-outlined text-[18px] text-primary">play_circle</span><span>Uji Dengar</span></button></div></div><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold">Pilihan Hari Aktif</label><div class="grid grid-cols-6 gap-2"><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-primary bg-primary/10 text-primary cursor-pointer transition-all"><input checked="" class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Sen</span><span class="material-symbols-outlined text-[14px] mt-0.5">check</span></label><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-primary bg-primary/10 text-primary cursor-pointer transition-all"><input checked="" class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Sel</span><span class="material-symbols-outlined text-[14px] mt-0.5">check</span></label><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-primary bg-primary/10 text-primary cursor-pointer transition-all"><input checked="" class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Rab</span><span class="material-symbols-outlined text-[14px] mt-0.5">check</span></label><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-primary bg-primary/10 text-primary cursor-pointer transition-all"><input checked="" class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Kam</span><span class="material-symbols-outlined text-[14px] mt-0.5">check</span></label><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-surface-container bg-surface-container-low text-on-surface-variant hover:bg-surface-container cursor-pointer transition-all"><input class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Jum</span><span class="material-symbols-outlined text-[14px] mt-0.5 opacity-0">check</span></label><label class="flex flex-col items-center justify-center p-2 rounded-lg border border-surface-container bg-surface-container-low text-on-surface-variant hover:bg-surface-container cursor-pointer transition-all"><input class="sr-only" type="checkbox"/><span class="font-label-md text-label-md font-bold">Sab</span><span class="material-symbols-outlined text-[14px] mt-0.5 opacity-0">check</span></label></div></div><div class="flex flex-col gap-1.5"><label class="font-label-sm text-label-sm text-on-surface font-semibold">Zona Target Speaker PA</label><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><label class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer text-xs font-medium text-on-surface"><input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/><span>Semua Ruangan</span></label><label class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer text-xs font-medium text-on-surface"><input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/><span>Gedung A (Kelas)</span></label><label class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer text-xs font-medium text-on-surface"><input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/><span>Gedung B (Lab)</span></label><label class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer text-xs font-medium text-on-surface"><input checked="" class="rounded accent-primary w-4 h-4 cursor-pointer" type="checkbox"/><span>Lapangan/Koridor</span></label></div></div><div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg mt-1"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[22px]">toggle_on</span><div><div class="font-label-md text-label-md text-on-surface font-semibold">Status Aktif Langsung</div><div class="font-body-sm text-body-sm text-on-surface-variant">Aktifkan bel otomatis saat jadwal disimpan</div></div></div><label class="relative inline-flex items-center cursor-pointer"><input checked="" class="sr-only peer" type="checkbox"/><div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container shadow-inner"></div></label></div></div><div class="flex items-center justify-between gap-space-sm pt-space-sm border-t border-surface-container-low"><span class="text-xs text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-primary">verified</span>Tersinkron dengan NTP Sekolah</span><div class="flex items-center gap-2"><button class="px-4 py-2.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer" id="btn-cancel-modal" onclick="document.getElementById('schedule-modal').classList.add('hidden')" type="button">Batal</button><button class="px-5 py-2.5 rounded-lg font-label-md text-label-md bg-primary-container text-on-primary hover:bg-primary shadow-[0_4px_12px_rgba(13,92,74,0.18)] hover:shadow-md transition-all cursor-pointer flex items-center gap-2 font-bold" id="btn-save-modal" onclick="document.getElementById('schedule-modal').classList.add('hidden')" type="button"><span class="material-symbols-outlined text-[18px]">check_circle</span><span>Simpan Jadwal Bel</span></button></div></div></div></div>
+</div>
+<script>
+  // Tab Switch Interactions
+  const tabs = document.querySelectorAll('.schedule-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => {
+        t.className = 'schedule-tab flex items-center gap-2 bg-transparent hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-label-md text-label-md px-space-md py-2 rounded-lg transition-colors whitespace-nowrap cursor-pointer';
+      });
+      tab.className = 'schedule-tab flex items-center gap-2 bg-primary text-on-primary font-label-md text-label-md px-space-md py-2 rounded-lg shadow-sm whitespace-nowrap cursor-pointer';
+    });
+  });
+
+  // Modal Handler
+  const modal = document.getElementById('schedule-modal');
+  const btnOpenModal = document.getElementById('btn-add-schedule');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  const btnCancelModal = document.getElementById('btn-cancel-modal');
+  const btnSaveModal = document.getElementById('btn-save-modal');
+
+  if (btnOpenModal && modal) {
+    btnOpenModal.addEventListener('click', () => modal.classList.remove('hidden'));
+    [btnCloseModal, btnCancelModal, btnSaveModal].forEach(b => {
+      if (b) b.addEventListener('click', () => modal.classList.add('hidden'));
+    });
+  }
+
+  // Audio Test Micro-interactions (Simulation)
+  let isTesting = false;
+  const playBtn = document.getElementById('btn-quick-play');
+  const stopBtn = document.getElementById('btn-quick-stop');
+  const playIcon = document.getElementById('play-test-icon');
+  const playText = document.getElementById('play-test-text');
+  const statusLine = document.getElementById('player-status-line');
+  const soundSelect = document.getElementById('quick-test-sound');
+
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      isTesting = !isTesting;
+      if (isTesting) {
+        playIcon.textContent = 'pause';
+        playText.textContent = 'Jeda Suara';
+        statusLine.textContent = 'Sedang memutar: ' + soundSelect.value + ' via PA Master';
+        statusLine.className = 'text-primary font-bold flex items-center gap-1.5 animate-pulse';
+      } else {
+        resetPlayer();
+      }
+    });
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', resetPlayer);
+  }
+
+  function resetPlayer() {
+    isTesting = false;
+    if (playIcon) playIcon.textContent = 'play_arrow';
+    if (playText) playText.textContent = 'Uji Suara Sekarang';
+    if (statusLine) {
+      statusLine.textContent = 'Status player: Menganggur (Siap bunyikan)';
+      statusLine.className = 'text-on-surface-variant font-body-sm text-body-sm';
+    }
+  }
+
+  // Preview Buttons inside Table
+  const previewButtons = document.querySelectorAll('.preview-btn');
+  previewButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const icon = btn.querySelector('.material-symbols-outlined');
+      const isPlaying = icon.textContent === 'stop';
+      
+      previewButtons.forEach(b => {
+        b.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
+        b.classList.remove('bg-error', 'text-on-error');
+        b.classList.add('bg-primary-container', 'text-on-primary');
+      });
+
+      if (!isPlaying) {
+        icon.textContent = 'stop';
+        btn.classList.remove('bg-primary-container', 'text-on-primary');
+        btn.classList.add('bg-error', 'text-on-error');
+        if (statusLine) {
+          statusLine.textContent = 'Pratinjau audio tabel: ' + btn.getAttribute('data-sound');
+        }
+      } else {
+        if (statusLine) {
+          statusLine.textContent = 'Status player: Menganggur (Siap bunyikan)';
+        }
+      }
+    });
+  });
+</script></main></div></body></html>

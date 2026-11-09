@@ -1,0 +1,109 @@
+import React, { useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Power,
+} from 'lucide-react';
+
+interface HeaderProps {
+  academicYear: string;
+  schoolName: string;
+  autoBellEnabled: boolean;
+  activeMode: string;
+  onToggleAutoBell: () => void;
+  onEmergencyTrigger: () => void;
+}
+
+const DAYS_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+export const Header: React.FC<HeaderProps> = ({
+  academicYear,
+  schoolName,
+  autoBellEnabled,
+  activeMode,
+  onToggleAutoBell,
+  onEmergencyTrigger,
+}) => {
+  const [timeStr, setTimeStr] = useState('');
+  const [dateStr, setDateStr] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      setTimeStr(`${h}:${m}:${s}`);
+      setDateStr(`${DAYS_ID[now.getDay()]}, ${now.getDate()} ${MONTHS_ID[now.getMonth()]} ${now.getFullYear()}`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <header className="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_6px_rgba(0,0,0,0.05)] border-b border-outline-variant/20 z-40 px-6 flex items-center justify-between select-none">
+      {/* Left Info */}
+      <div className="flex items-center gap-3">
+        {/* Academic Year + School badge */}
+        <div className="flex flex-col bg-surface-container-low px-3 py-1.5 rounded-lg">
+          <span className="text-sm font-semibold text-on-surface">{schoolName}</span>
+          <span className="text-xs text-on-surface-variant">{academicYear}</span>
+        </div>
+
+        {/* Auto Bell Status Toggle */}
+        <button
+          onClick={onToggleAutoBell}
+          title="Klik untuk mengaktifkan/menonaktifkan penjadwalan otomatis"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer border ${
+            autoBellEnabled
+              ? 'bg-primary/8 border-primary/20 text-primary hover:bg-primary/12'
+              : 'bg-error-container/60 border-error/20 text-error hover:bg-error-container'
+          }`}
+        >
+          {autoBellEnabled ? (
+            <>
+              <span className="relative flex w-2 h-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+                <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
+              </span>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
+            </>
+          ) : (
+            <>
+              <Power className="w-3.5 h-3.5" />
+              <span>Bel otomatis mati</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Right Controls */}
+      <div className="flex items-center gap-3">
+        {/* Real-time Clock */}
+        <div className="hidden md:flex flex-col text-right items-end pr-3 border-r border-outline-variant/30">
+          <div className="flex items-center gap-1.5 font-mono font-bold text-[15px] text-on-surface tabular-nums tracking-wider">
+            <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span>{timeStr}</span>
+            <span className="text-[11px] font-semibold text-on-surface-variant ml-0.5">WIB</span>
+          </div>
+          <span className="text-xs text-on-surface-variant font-medium">{dateStr}</span>
+        </div>
+
+        {/* Emergency Button */}
+        <button
+          onClick={onEmergencyTrigger}
+          className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95"
+          type="button"
+        >
+          <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
+          <span>Darurat: Bunyikan Bel</span>
+        </button>
+
+      </div>
+    </header>
+  );
+};
