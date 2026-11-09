@@ -1,5 +1,5 @@
-// Audio Engine: Web Audio API Synthesizer & Web Speech API Indonesian Announcer
-import { convertFileSrc } from '@tauri-apps/api/core';
+// Audio Engine: Web Audio bells, offline Piper TTS, and browser Web Speech fallback
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { isTauri } from './tauriBridge';
 
 export type VoiceGender = 'female' | 'male';
@@ -28,6 +28,11 @@ class AudioEngine {
   private emergencyGain: GainNode | null = null;
   private currentVolume = 0.85;
   private currentBellAudio: HTMLAudioElement | null = null;
+  private currentSpeechAudio: HTMLAudioElement | null = null;
+  private currentSpeechFile: string | null = null;
+  private currentSpeechVolume = 1;
+  private speechRequestId = 0;
+  private speechTimer: ReturnType<typeof setTimeout> | null = null;
 
   private getContext(): AudioContext {
     if (!this.ctx) {
@@ -43,6 +48,9 @@ class AudioEngine {
   public setVolume(vol: number) {
     this.currentVolume = Math.max(0, Math.min(1, vol / 100));
     if (this.currentBellAudio) this.currentBellAudio.volume = this.currentVolume;
+    if (this.currentSpeechAudio) {
+      this.currentSpeechAudio.volume = this.currentSpeechVolume * this.currentVolume;
+    }
   }
 
   // Play a tubular bell chime tone
@@ -266,7 +274,143 @@ class AudioEngine {
     this.bellOscillators.clear();
   }
 
-  // Web Speech API: Indonesian Live Announcer
+  private removeGeneratedTtsFile(path: string) {
+    void invoke('remove_tts_audio', { path }).catch((error: unknown) => {
+      console.error('Gagal menghapus cache audio TTS:', error);
+    });
+  }
+
+  private speakWithWebSpeech(
+    text: string,
+    requestId: number,
+    options: {
+      pitch: number;
+      rate: number;
+      volume: number;
+      gender?: VoiceGender;
+      onStart?: () => void;
+      onEnd?: () => void;
+      onError?: (message: string) => void;
+    }
+  ) {
+    if (!('speechSynthesis' in window)) {
+      options.onError?.('Browser / WebView ini tidak mendukung Text-to-Speech Web API.');
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'id-ID';
+    utterance.pitch = options.pitch;
+    utterance.rate = options.rate;
+    utterance.volume = options.volume * this.currentVolume;
+
+    const voices = getIndonesianVoices();
+    const selectedVoice = options.gender ? findIndonesianVoice(options.gender) : voices[0];
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    } else if (voices.length > 0) {
+      utterance.voice = voices[0];
+    }
+    if (options.gender && !findIndonesianVoice(options.gender)) {
+      utterance.pitch = options.gender === 'female'
+        ? Math.max(options.pitch, 1.15)
+        : Math.min(options.pitch, 0.9);
+    }
+
+    utterance.onstart = () => {
+      if (requestId === this.speechRequestId) options.onStart?.();
+    };
+    utterance.onend = () => {
+      if (requestId === this.speechRequestId) options.onEnd?.();
+    };
+    utterance.onerror = (event) => {
+      if (requestId === this.speechRequestId) {
+        options.onError?.(`Text-to-Speech gagal: ${event.error}`);
+      }
+    };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  private async speakWithPiper(
+    text: string,
+    requestId: number,
+    volume: number,
+    rate: number,
+    onStart?: () => void,
+    onEnd?: () => void,
+    onError?: (message: string) => void
+  ) {
+    let filePath: string | null = null;
+    let audio: HTMLAudioElement | null = null;
+    let settled = false;
+
+    const release = () => {
+      if (audio && this.currentSpeechAudio === audio) {
+        this.currentSpeechAudio = null;
+        this.currentSpeechFile = null;
+      }
+      if (filePath) this.removeGeneratedTtsFile(filePath);
+    };
+
+    const fail = (message: string) => {
+      if (settled) return;
+      settled = true;
+      if (audio) {
+        audio.onplaying = null;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.src = '';
+      }
+      release();
+      if (requestId === this.speechRequestId) onError?.(message);
+    };
+
+    try {
+      filePath = await invoke<string>('synthesize_offline_tts', { text, rate });
+      if (requestId !== this.speechRequestId) {
+        this.removeGeneratedTtsFile(filePath);
+        return;
+      }
+
+      audio = new Audio(convertFileSrc(filePath));
+      audio.volume = volume * this.currentVolume;
+      this.currentSpeechVolume = volume;
+      this.currentSpeechAudio = audio;
+      this.currentSpeechFile = filePath;
+
+      let didStart = false;
+      audio.onplaying = () => {
+        if (!didStart && requestId === this.speechRequestId) {
+          didStart = true;
+          onStart?.();
+        }
+      };
+      audio.onended = () => {
+        if (settled) return;
+        const endedAudio = audio;
+        if (!endedAudio) return;
+        settled = true;
+        endedAudio.onplaying = null;
+        endedAudio.onended = null;
+        endedAudio.onerror = null;
+        endedAudio.pause();
+        endedAudio.src = '';
+        release();
+        if (requestId === this.speechRequestId) onEnd?.();
+      };
+      audio.onerror = () => {
+        fail(audio?.error?.message || 'Tidak dapat memutar hasil suara Piper.');
+      };
+
+      await audio.play();
+    } catch (error) {
+      fail(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  // Use Piper offline in Tauri; browser previews continue to use Web Speech.
   public speakIndonesian(
     text: string,
     options: {
@@ -277,6 +421,7 @@ class AudioEngine {
       chime?: 'bank' | 'airport' | 'dingdong' | 'none';
       onStart?: () => void;
       onEnd?: () => void;
+      onError?: (message: string) => void;
     } = {}
   ) {
     const {
@@ -287,62 +432,34 @@ class AudioEngine {
       chime = 'bank',
       onStart,
       onEnd,
+      onError,
     } = options;
 
+    this.stopSpeaking();
+    const requestId = this.speechRequestId;
+    this.currentSpeechVolume = volume;
+
     const executeSpeech = () => {
-      if (!('speechSynthesis' in window)) {
-        alert('Browser / Webview tidak mendukung Text-to-Speech Web API.');
-        if (onEnd) onEnd();
-        return;
+      if (requestId !== this.speechRequestId) return;
+      const speechOptions = { pitch, rate, volume, gender, onStart, onEnd, onError };
+      if (isTauri()) {
+        void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
+      } else {
+        this.speakWithWebSpeech(text, requestId, speechOptions);
       }
-
-      window.speechSynthesis.cancel(); // Stop any pending speech
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'id-ID';
-      utterance.pitch = pitch;
-      utterance.rate = rate;
-      utterance.volume = (volume * this.currentVolume);
-
-      // Select Indonesian voice if available
-      const voices = getIndonesianVoices();
-      const selectedVoice = gender ? findIndonesianVoice(gender) : voices[0];
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      } else if (voices.length > 0) {
-        utterance.voice = voices[0];
-      }
-      if (gender && !findIndonesianVoice(gender)) {
-        utterance.pitch = gender === 'female' ? Math.max(pitch, 1.15) : Math.min(pitch, 0.9);
-      }
-
-      utterance.onstart = () => {
-        if (onStart) onStart();
-      };
-
-      utterance.onend = () => {
-        if (onEnd) onEnd();
-      };
-
-      utterance.onerror = (e) => {
-        console.error('TTS Error:', e);
-        if (onEnd) onEnd();
-      };
-
-      window.speechSynthesis.speak(utterance);
     };
 
     if (chime === 'bank') {
       this.playBankChime(() => {
-        setTimeout(executeSpeech, 250);
+        this.speechTimer = setTimeout(executeSpeech, 250);
       });
     } else if (chime === 'airport') {
       this.playAirportChime(() => {
-        setTimeout(executeSpeech, 250);
+        this.speechTimer = setTimeout(executeSpeech, 250);
       });
     } else if (chime === 'dingdong') {
       this.playThreeToneChime(() => {
-        setTimeout(executeSpeech, 250);
+        this.speechTimer = setTimeout(executeSpeech, 250);
       });
     } else {
       executeSpeech();
@@ -350,8 +467,25 @@ class AudioEngine {
   }
 
   public stopSpeaking() {
+    this.speechRequestId += 1;
+    if (this.speechTimer) {
+      clearTimeout(this.speechTimer);
+      this.speechTimer = null;
+    }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+    }
+    if (this.currentSpeechAudio) {
+      const audio = this.currentSpeechAudio;
+      const filePath = this.currentSpeechFile;
+      audio.onplaying = null;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.src = '';
+      this.currentSpeechAudio = null;
+      this.currentSpeechFile = null;
+      if (filePath) this.removeGeneratedTtsFile(filePath);
     }
   }
 }

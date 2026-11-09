@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": "npm run prepare:tts && npm run dev",
+    "beforeBuildCommand": "npm run prepare:tts && npm run build"
   },
   "app": {
     "windows": [
@@ -30,6 +30,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": [
+      "resources/tts/**/*"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

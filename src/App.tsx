@@ -94,12 +94,14 @@ export function App() {
         audioEngine.speakIndonesian(ttsText, {
           gender: ttsVoiceGender,
           chime: 'none',
+          onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
         });
       } else {
         audioEngine.playSoundFile(payload.audio_file, ttsText
           ? () => audioEngine.speakIndonesian(ttsText, {
               gender: ttsVoiceGender,
               chime: 'none',
+              onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
             })
           : undefined);
       }
@@ -265,7 +267,8 @@ export function App() {
     targetType: TargetCategory,
     name: string,
     location: string,
-    message: string
+    message: string,
+    onComplete?: () => void
   ) => {
     let prefix = 'Perhatian kepada ';
     if (targetType === 'Siswa') prefix += `siswa bernama ${name}, `;
@@ -276,14 +279,6 @@ export function App() {
     const dest = `dimohon untuk segera menuju ke ${location}. `;
     const extra = message ? `${message}. ` : '';
     const fullText = `${prefix}${dest}${extra}Terima kasih.`;
-
-    audioEngine.speakIndonesian(fullText, {
-      pitch: 1.0,
-      rate: 0.95,
-      volume: 1.0,
-      gender: ttsVoiceGender,
-      chime: 'bank',
-    });
 
     const nowStr =
       new Date().toLocaleTimeString('id-ID', {
@@ -302,12 +297,26 @@ export function App() {
       full_text: fullText,
     };
 
-    if (appData) {
-      const updatedHistory = [record, ...appData.tts_history];
-      const updated = { ...appData, tts_history: updatedHistory };
-      setAppData(updated);
-      tauriBridge.addTtsRecord(record);
-    }
+    audioEngine.speakIndonesian(fullText, {
+      pitch: 1.0,
+      rate: 0.95,
+      volume: 1.0,
+      gender: ttsVoiceGender,
+      chime: 'bank',
+      onEnd: () => {
+        onComplete?.();
+        const currentData = appDataRef.current;
+        if (!currentData) return;
+        const updated = { ...currentData, tts_history: [record, ...currentData.tts_history] };
+        appDataRef.current = updated;
+        setAppData(updated);
+        tauriBridge.addTtsRecord(record);
+      },
+      onError: (error) => {
+        onComplete?.();
+        alert(`Gagal memutar TTS: ${error}`);
+      },
+    });
   };
 
   const handleAddTtsRecord = (record: TtsCallRecord) => {

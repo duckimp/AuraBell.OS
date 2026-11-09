@@ -4,15 +4,48 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::menu::{Menu, MenuItem};
+use tauri::path::BaseDirectory;
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
+
+static TTS_AUDIO_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+fn tts_resource_path(app: &AppHandle, relative_path: &str) -> Result<PathBuf, String> {
+    let resource_path = app
+        .path()
+        .resolve(
+            format!("resources/tts/{relative_path}"),
+            BaseDirectory::Resource,
+        )
+        .map_err(|error| format!("Lokasi resource TTS tidak ditemukan: {error}"))?;
+    if resource_path.exists() {
+        return Ok(resource_path);
+    }
+
+    #[cfg(debug_assertions)]
+    {
+        let development_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources")
+            .join("tts")
+            .join(relative_path);
+        if development_path.exists() {
+            return Ok(development_path);
+        }
+    }
+
+    Err(format!(
+        "Resource TTS tidak tersedia di {}. Jalankan ulang build desktop agar resource TTS disiapkan.",
+        resource_path.display()
+    ))
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScheduleItem {
@@ -619,6 +652,166 @@ fn add_tts_record(
 }
 
 #[tauri::command]
+async fn synthesize_offline_tts(
+    app: AppHandle,
+    text: String,
+    rate: f64,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || synthesize_offline_tts_blocking(app, text, rate))
+        .await
+        .map_err(|error| format!("Proses sintesis TTS gagal: {error}"))?
+}
+
+fn synthesize_offline_tts_blocking(
+    app: AppHandle,
+    text: String,
+    rate: f64,
+) -> Result<String, String> {
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if text.is_empty() {
+        return Err("Teks TTS tidak boleh kosong.".to_string());
+    }
+    if text.chars().count() > 2000 {
+        return Err("Teks TTS terlalu panjang (maksimal 2.000 karakter).".to_string());
+    }
+    if !rate.is_finite() {
+        return Err("Kecepatan bicara TTS tidak valid.".to_string());
+    }
+    let length_scale = format!("{:.3}", 1.0 / rate.clamp(0.7, 1.3));
+
+    let piper_dir = tts_resource_path(&app, "piper")?;
+    let model_path = tts_resource_path(&app, "model/id_ID-news_tts-medium-q8.onnx")?;
+    let config_path = tts_resource_path(&app, "model/id_ID-news_tts-medium-q8.onnx.json")?;
+
+    #[cfg(target_os = "windows")]
+    let executable = piper_dir.join("piper.exe");
+    #[cfg(not(target_os = "windows"))]
+    let executable = piper_dir.join("piper");
+
+    let espeak_data = piper_dir.join("espeak-ng-data");
+    for (label, path) in [
+        ("Piper", &executable),
+        ("Model suara", &model_path),
+        ("Konfigurasi model suara", &config_path),
+        ("Data eSpeak", &espeak_data),
+    ] {
+        if !path.exists() {
+            return Err(format!(
+                "{label} tidak tersedia di {}. Jalankan ulang build desktop agar resource TTS disiapkan.",
+                path.display()
+            ));
+        }
+    }
+
+    let output_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|error| format!("Folder data aplikasi tidak tersedia: {error}"))?
+        .join("tts-cache");
+    fs::create_dir_all(&output_dir)
+        .map_err(|error| format!("Gagal menyiapkan cache TTS: {error}"))?;
+
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("Waktu sistem tidak valid: {error}"))?
+        .as_nanos();
+    let sequence = TTS_AUDIO_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let output_path = output_dir.join(format!(
+        "aurabell-tts-{}-{timestamp}-{sequence}.wav",
+        std::process::id()
+    ));
+
+    let mut child = Command::new(&executable)
+        .arg("--model")
+        .arg(&model_path)
+        .arg("--output_file")
+        .arg(&output_path)
+        .arg("--length_scale")
+        .arg(length_scale)
+        .arg("--espeak_data")
+        .arg(&espeak_data)
+        .current_dir(&piper_dir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("Gagal menjalankan engine Piper: {error}"))?;
+
+    let write_result = child
+        .stdin
+        .take()
+        .ok_or_else(|| "Input engine Piper tidak tersedia.".to_string())
+        .and_then(|mut stdin| {
+            stdin
+                .write_all(text.as_bytes())
+                .and_then(|_| stdin.write_all(b"\n"))
+                .map_err(|error| format!("Gagal mengirim teks ke Piper: {error}"))
+        });
+
+    if let Err(error) = write_result {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
+    }
+
+    let result = child
+        .wait_with_output()
+        .map_err(|error| format!("Gagal menunggu hasil sintesis Piper: {error}"))?;
+    if !result.status.success() {
+        let _ = fs::remove_file(&output_path);
+        let details = String::from_utf8_lossy(&result.stderr).trim().to_string();
+        return Err(if details.is_empty() {
+            format!("Engine Piper berhenti dengan status {}.", result.status)
+        } else {
+            format!("Engine Piper gagal: {details}")
+        });
+    }
+
+    let metadata = match fs::metadata(&output_path) {
+        Ok(metadata) => metadata,
+        Err(error) => {
+            let _ = fs::remove_file(&output_path);
+            return Err(format!("Piper tidak menghasilkan file audio: {error}"));
+        }
+    };
+    if metadata.len() <= 44 {
+        let _ = fs::remove_file(&output_path);
+        return Err("Piper menghasilkan file audio yang kosong.".to_string());
+    }
+
+    Ok(output_path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+fn remove_tts_audio(app: AppHandle, path: String) -> Result<(), String> {
+    let output_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|error| format!("Folder data aplikasi tidak tersedia: {error}"))?
+        .join("tts-cache");
+    let output_path = PathBuf::from(path);
+    let file_name = output_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| "Lokasi file TTS tidak valid.".to_string())?;
+    if output_path.parent() != Some(output_dir.as_path())
+        || !file_name.starts_with("aurabell-tts-")
+        || output_path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            != Some("wav")
+    {
+        return Err("File yang diminta bukan hasil TTS AuraBell.OS.".to_string());
+    }
+
+    match fs::remove_file(output_path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(format!("Gagal menghapus cache audio TTS: {error}")),
+    }
+}
+
+#[tauri::command]
 fn clear_tts_records(app: AppHandle, state: tauri::State<AppState>) -> Result<(), String> {
     let mut data = state.data.lock().unwrap();
     data.tts_history.clear();
@@ -950,6 +1143,8 @@ pub fn run() {
             trigger_bell_manual,
             stop_current_bell,
             add_tts_record,
+            synthesize_offline_tts,
+            remove_tts_audio,
             clear_tts_records,
             set_active_mode,
             toggle_auto_bell,

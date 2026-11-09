@@ -12,7 +12,8 @@ AuraBell.OS adalah aplikasi desktop lokal untuk membantu operator sekolah mengat
 - Suara jadwal berupa nada bawaan, file audio lokal, TTS, atau nada yang diikuti pengumuman TTS.
 - Scheduler desktop berjalan saat AuraBell.OS terbuka, termasuk saat jendela disembunyikan ke system tray.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.
-- Pemilihan suara TTS pria/wanita berdasarkan suara yang tersedia di sistem.
+- TTS offline Bahasa Indonesia berbasis Piper untuk aplikasi desktop.
+- Pemilihan suara TTS pria/wanita di mode browser, mengikuti voice yang tersedia pada sistem.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.
 - Impor file audio lokal. Di desktop, file disalin ke penyimpanan aplikasi agar tetap tersedia setelah aplikasi ditutup.
 - Pengaturan identitas sekolah dan backup/restore.
@@ -58,6 +59,8 @@ npm ci
 npm run tauri -- dev
 ```
 
+Build desktop pertama memerlukan internet untuk mengunduh binary Piper dan model suara yang dipatok. Untuk memeriksa sintesis lokal secara langsung, jalankan `npm run verify:tts`.
+
 ### Build lokal
 
 Build frontend:
@@ -100,10 +103,14 @@ Simpan backup di lokasi terpisah dari komputer aplikasi, misalnya penyimpanan ek
 
 - Scheduler otomatis memerlukan aplikasi desktop tetap berjalan. Menutup jendela dengan tombol **X** menyembunyikan aplikasi ke tray; memilih **Keluar** dari menu tray menghentikan scheduler.
 - Penjadwalan dan pemutaran bel tetap bergantung pada komputer menyala, aplikasi aktif, serta perangkat audio yang tersedia.
-- Suara dan gender TTS mengikuti voice Bahasa Indonesia yang terpasang dan didukung oleh sistem/WebView. Aplikasi belum membundel engine atau voice offline tersendiri.
+- Aplikasi desktop membundel Piper dan satu voice offline Bahasa Indonesia. Model ini hanya memiliki satu speaker, jadi pilihan suara pria/wanita tidak tersedia di desktop. Mode browser tetap bergantung pada Web Speech API dan voice yang tersedia di sistem.
+- Build desktop mengunduh resource Piper dan model suara yang versinya dipatok serta checksum SHA-256-nya diverifikasi. Setelah terpasang, sintesis TTS berjalan lokal tanpa internet. Ukuran installer bertambah karena engine, phonemizer, dan model ikut dibundel.
+- Engine Piper dijalankan hanya saat TTS dibutuhkan, tetapi pemakaian RAM naik sementara selama sintesis; uji pada komputer sekolah sebelum digunakan rutin.
 - Impor YouTube memerlukan internet serta `yt-dlp` dan FFmpeg tersedia di sistem. Kedua program tersebut tidak dibundel bersama installer saat ini.
 - Data bawaan yang ditampilkan saat instalasi baru hanyalah konfigurasi awal; atur nama sekolah dan jadwal sendiri sebelum digunakan.
 - Panel zona speaker belum mengendalikan perangkat atau routing speaker terpisah.
+
+Resource TTS pihak ketiga menggunakan Piper CLI dari [rhasspy/piper](https://github.com/rhasspy/piper) versi `2023.11.14-2` dan model [Indonesian News TTS Q8](https://huggingface.co/okasi/piper-indonesian-news-tts-onnx-q8). Lisensi disertakan bersama resource di installer.
 
 ## Teknologi
 

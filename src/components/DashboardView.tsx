@@ -16,11 +16,18 @@ import {
 } from 'lucide-react';
 import { AppData, ScheduleItem, AudioTrack, TargetCategory } from '../types';
 import { audioEngine, VoiceGender } from '../services/audioEngine';
+import { isTauri } from '../services/tauriBridge';
 
 interface DashboardViewProps {
   appData: AppData;
   onTriggerBell: (title: string, audioFile: string, category?: string) => void;
-  onSendTts: (targetType: TargetCategory, name: string, location: string, message: string) => void;
+  onSendTts: (
+    targetType: TargetCategory,
+    name: string,
+    location: string,
+    message: string,
+    onComplete?: () => void
+  ) => void;
   onSelectTrack: (track: AudioTrack) => void;
   voiceGender: VoiceGender;
   onVoiceGenderChange: (gender: VoiceGender) => void;
@@ -119,12 +126,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       return;
     }
     setIsCallingTts(true);
-    onSendTts(quickTarget, quickName, quickLocation, quickMessage);
-    setTimeout(() => {
+    onSendTts(quickTarget, quickName, quickLocation, quickMessage, () => {
       setIsCallingTts(false);
       setQuickName('');
       setQuickMessage('');
-    }, 2000);
+    });
   };
 
   const recentSenamTrack = appData.playlist[0] || null;
@@ -384,7 +390,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
               </div>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed">
-                Suara Natural id-ID
+                {isTauri() ? 'Piper offline id-ID' : 'Suara Natural id-ID'}
               </span>
             </div>
 
@@ -407,20 +413,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             {/* Form Inputs */}
             <div className="mt-3 flex flex-col gap-2.5">
-              <div>
-                <label className="text-sm font-semibold text-on-surface-variant" htmlFor="quick-tts-voice">
-                  Suara panggilan
-                </label>
-                <select
-                  id="quick-tts-voice"
-                  value={voiceGender}
-                  onChange={(event) => onVoiceGenderChange(event.target.value as VoiceGender)}
-                  className="w-full mt-1 px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="female">Wanita</option>
-                  <option value="male">Pria</option>
-                </select>
-              </div>
+              {isTauri() ? (
+                <p className="text-xs text-on-surface-variant">
+                  Voice offline tersedia dalam satu pilihan Bahasa Indonesia.
+                </p>
+              ) : (
+                <div>
+                  <label className="text-sm font-semibold text-on-surface-variant" htmlFor="quick-tts-voice">
+                    Suara panggilan
+                  </label>
+                  <select
+                    id="quick-tts-voice"
+                    value={voiceGender}
+                    onChange={(event) => onVoiceGenderChange(event.target.value as VoiceGender)}
+                    className="w-full mt-1 px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="female">Wanita</option>
+                    <option value="male">Pria</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-semibold text-on-surface-variant">
                   Nama Penerima / Target:

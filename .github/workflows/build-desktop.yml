@@ -52,6 +52,9 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Verify offline TTS runtime
+        run: npm run verify:tts
+
       - name: Build Debian package
         run: npm run tauri -- build --ci --bundles deb
 
@@ -92,6 +95,9 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Verify offline TTS runtime
+        run: npm run verify:tts
 
       - name: Build Windows installer
         run: npm run tauri -- build --ci --bundles nsis

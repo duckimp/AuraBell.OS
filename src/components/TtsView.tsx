@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { AppData, TargetCategory, TtsCallRecord } from '../types';
 import { audioEngine, findIndonesianVoice, getIndonesianVoices, VoiceGender } from '../services/audioEngine';
+import { isTauri } from '../services/tauriBridge';
 
 interface TtsViewProps {
   appData: AppData;
@@ -47,15 +48,20 @@ export const TtsView: React.FC<TtsViewProps> = ({
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [synthesizedPreview, setSynthesizedPreview] = useState('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const isOfflineDesktop = isTauri();
 
   useEffect(() => {
+    if (isOfflineDesktop) {
+      setAvailableVoices([]);
+      return;
+    }
     const updateVoices = () => setAvailableVoices(getIndonesianVoices());
     updateVoices();
     window.speechSynthesis?.addEventListener('voiceschanged', updateVoices);
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', updateVoices);
-  }, []);
+  }, [isOfflineDesktop]);
 
-  const selectedVoice = findIndonesianVoice(voiceGender);
+  const selectedVoice = isOfflineDesktop ? undefined : findIndonesianVoice(voiceGender);
 
   // Update synthesized preview text dynamically
   useEffect(() => {
@@ -134,11 +140,16 @@ export const TtsView: React.FC<TtsViewProps> = ({
           onAddRecord(record);
         }
       },
+      onError: (error) => {
+        setIsBroadcasting(false);
+        alert(`Gagal memutar TTS: ${error}`);
+      },
     });
   };
 
   const handleStopAnnouncement = () => {
     audioEngine.stopSpeaking();
+    audioEngine.stopBellAudio();
     setIsBroadcasting(false);
   };
 
@@ -153,6 +164,10 @@ export const TtsView: React.FC<TtsViewProps> = ({
       chime: 'bank',
       onStart: () => setIsBroadcasting(true),
       onEnd: () => setIsBroadcasting(false),
+      onError: (error) => {
+        setIsBroadcasting(false);
+        alert(`Gagal memutar TTS: ${error}`);
+      },
     });
   };
 
@@ -166,7 +181,9 @@ export const TtsView: React.FC<TtsViewProps> = ({
               Modul Suara Digital
             </span>
             <span className="text-on-surface-variant text-xs">
-              • Text-to-Speech Web API id-ID + Nada Antrian Bank
+              {isOfflineDesktop
+                ? '• Piper TTS Offline id-ID + Nada Antrian Bank'
+                : '• Text-to-Speech Web API id-ID + Nada Antrian Bank'}
             </span>
           </div>
           <h1 className="font-headline font-extrabold text-2xl text-primary tracking-tight">
@@ -409,30 +426,43 @@ export const TtsView: React.FC<TtsViewProps> = ({
                 </h3>
               </div>
               <span className="text-[11px] text-on-surface-variant font-medium">
-                Engine: WebSpeech
+                {isOfflineDesktop ? 'Engine: Piper Offline' : 'Engine: Web Speech'}
               </span>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="tts-voice-gender" className="text-sm font-semibold text-on-surface-variant">
-                Suara panggilan
-              </label>
-              <select
-                id="tts-voice-gender"
-                value={voiceGender}
-                onChange={(event) => onVoiceGenderChange(event.target.value as VoiceGender)}
-                className="w-full px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="female">Wanita</option>
-                <option value="male">Pria</option>
-              </select>
-              <p className="text-xs text-on-surface-variant">
-                {selectedVoice
-                  ? `Voice tersedia: ${selectedVoice.name}`
-                  : availableVoices.length > 0
-                    ? `Voice ${voiceGender === 'female' ? 'wanita' : 'pria'} khusus tidak terdeteksi; nada suara akan disesuaikan.`
-                    : 'Voice Bahasa Indonesia bergantung pada yang terpasang di sistem.'}
-              </p>
+              {isOfflineDesktop ? (
+                <div className="rounded-xl bg-surface-container-low p-3">
+                  <p className="text-sm font-semibold text-on-surface-variant">
+                    Suara Bahasa Indonesia offline
+                  </p>
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    Piper menggunakan satu voice bawaan; pilihan pria/wanita belum tersedia untuk model ini.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <label htmlFor="tts-voice-gender" className="text-sm font-semibold text-on-surface-variant">
+                    Suara panggilan
+                  </label>
+                  <select
+                    id="tts-voice-gender"
+                    value={voiceGender}
+                    onChange={(event) => onVoiceGenderChange(event.target.value as VoiceGender)}
+                    className="w-full px-3 py-2 bg-surface-container-low rounded-xl text-sm font-medium text-on-surface border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="female">Wanita</option>
+                    <option value="male">Pria</option>
+                  </select>
+                  <p className="text-xs text-on-surface-variant">
+                    {selectedVoice
+                      ? `Voice tersedia: ${selectedVoice.name}`
+                      : availableVoices.length > 0
+                        ? `Voice ${voiceGender === 'female' ? 'wanita' : 'pria'} khusus tidak terdeteksi; nada suara akan disesuaikan.`
+                        : 'Voice Bahasa Indonesia bergantung pada yang terpasang di sistem.'}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Audio Wave Visualizer Simulation */}
@@ -472,21 +502,23 @@ export const TtsView: React.FC<TtsViewProps> = ({
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="font-semibold text-on-surface-variant">Tinggi Nada (Pitch):</span>
-                  <span className="font-mono font-bold text-primary">{pitch}x</span>
+              {!isOfflineDesktop && (
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-on-surface-variant">Tinggi Nada (Pitch):</span>
+                    <span className="font-mono font-bold text-primary">{pitch}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.8"
+                    max="1.3"
+                    step="0.05"
+                    value={pitch}
+                    onChange={(e) => setPitch(parseFloat(e.target.value))}
+                    className="w-full accent-primary cursor-pointer"
+                  />
                 </div>
-                <input
-                  type="range"
-                  min="0.8"
-                  max="1.3"
-                  step="0.05"
-                  value={pitch}
-                  onChange={(e) => setPitch(parseFloat(e.target.value))}
-                  className="w-full accent-primary cursor-pointer"
-                />
-              </div>
+              )}
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
