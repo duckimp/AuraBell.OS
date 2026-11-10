@@ -56,6 +56,9 @@ jobs:
         run: npm run verify:tts
 
       - name: Build Debian package
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: npm run tauri -- build --ci --bundles deb
 
       - name: Upload Debian package
@@ -100,6 +103,9 @@ jobs:
         run: npm run verify:tts
 
       - name: Build Windows installer
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: npm run tauri -- build --ci --bundles nsis
 
       - name: Upload Windows installer

@@ -3,11 +3,17 @@ import { open, save } from '@tauri-apps/plugin-dialog';
 import { Download, GraduationCap, RotateCcw, Save, Upload } from 'lucide-react';
 import { AppData } from '../types';
 import { isTauri, tauriBridge } from '../services/tauriBridge';
+import {
+  REMOTE_RECEIVER_STORAGE_KEY,
+  RemoteReceiverStatus,
+} from '../services/remoteAnnouncements';
 
 interface SettingsViewProps {
   appData: AppData;
   onSaveSchoolSettings: (schoolName: string, academicYear: string) => Promise<void>;
   onRestoreBackup: (data: AppData) => Promise<void>;
+  remoteReceiverEnabled: boolean;
+  remoteReceiverStatus: RemoteReceiverStatus;
 }
 
 function isAppData(value: unknown): value is AppData {
@@ -28,12 +34,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   appData,
   onSaveSchoolSettings,
   onRestoreBackup,
+  remoteReceiverEnabled,
+  remoteReceiverStatus,
 }) => {
   const [schoolName, setSchoolName] = useState(appData.settings.school_name);
   const [academicYear, setAcademicYear] = useState(appData.settings.academic_year);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
   const browserImportRef = useRef<HTMLInputElement>(null);
+
+  const handleRemoteReceiverChange = (enabled: boolean) => {
+    localStorage.setItem(REMOTE_RECEIVER_STORAGE_KEY, String(enabled));
+    window.dispatchEvent(new Event('aurabell-remote-receiver-config-changed'));
+  };
+  const receiverStatusText: Record<RemoteReceiverStatus, string> = {
+    disabled: 'Penerima nonaktif di perangkat ini.',
+    connecting: 'Menghubungkan ke Supabase...',
+    connected: 'Terhubung—siap menerima pengumuman.',
+    error: 'Koneksi gagal. Periksa internet dan konfigurasi Supabase.',
+  };
 
   useEffect(() => {
     setSchoolName(appData.settings.school_name);
@@ -191,6 +210,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           Simpan Pengaturan
         </button>
       </form>
+
+      <section className="flex flex-col gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-headline text-base font-bold text-primary">Penerima Pengumuman Remote</h2>
+            <p className="mt-1 text-sm text-on-surface-variant">
+              Perangkat ini (Ruang TU) menerima pengumuman dari akun sekolah. Jadwal bel otomatis tetap berjalan lokal di aplikasi desktop.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={remoteReceiverEnabled}
+            onClick={() => handleRemoteReceiverChange(!remoteReceiverEnabled)}
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
+              remoteReceiverEnabled
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container text-on-surface-variant'
+            }`}
+          >
+            {remoteReceiverEnabled ? 'Aktif' : 'Nonaktif'}
+          </button>
+        </div>
+        <p className="rounded-xl bg-surface-container-low p-3 text-xs text-on-surface-variant">
+          Perangkat tujuan: <strong>ruang-tu</strong>. Browser/PWA dapat memakai voice browser yang tersedia—gunakan Chrome di komputer TU bila Google Bahasa Indonesia terdeteksi. Halaman/browser harus tetap terbuka. Jika Tauri dan browser sama-sama aktif sebagai receiver, salah satunya akan menerima tiap perintah.
+        </p>
+        <p role="status" className={`text-xs font-semibold ${
+          remoteReceiverStatus === 'connected'
+            ? 'text-primary'
+            : remoteReceiverStatus === 'error'
+              ? 'text-error'
+              : 'text-on-surface-variant'
+        }`}>
+          {receiverStatusText[remoteReceiverStatus]}
+        </p>
+      </section>
 
       <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
         <div className="flex items-center gap-2 border-b border-surface-container pb-3">

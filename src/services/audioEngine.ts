@@ -7,6 +7,7 @@ export type TtsEngine = 'system' | 'piper';
 
 const FEMALE_VOICE_NAMES = /female|woman|girl|gadis|zira|siti|amelia|putri|ayu/i;
 const MALE_VOICE_NAMES = /\bmale\b|\bman\b|\bboy\b|ardi|dimas|budi|andika|joko/i;
+const GOOGLE_VOICE_NAMES = /google.*(?:bahasa indonesia|indonesian)/i;
 
 export function getIndonesianVoices(): SpeechSynthesisVoice[] {
   if (!('speechSynthesis' in window)) return [];
@@ -15,8 +16,17 @@ export function getIndonesianVoices(): SpeechSynthesisVoice[] {
   );
 }
 
+export function findGoogleIndonesianVoice(
+  voices = getIndonesianVoices()
+): SpeechSynthesisVoice | undefined {
+  return voices.find((voice) => GOOGLE_VOICE_NAMES.test(voice.name));
+}
+
 export function findIndonesianVoice(gender: VoiceGender): SpeechSynthesisVoice | undefined {
   const voices = getIndonesianVoices();
+  const googleVoice = findGoogleIndonesianVoice(voices);
+  if (googleVoice) return googleVoice;
+
   const genderPattern = gender === 'female' ? FEMALE_VOICE_NAMES : MALE_VOICE_NAMES;
   return voices.find((voice) => genderPattern.test(voice.name));
 }
@@ -306,13 +316,19 @@ class AudioEngine {
     utterance.volume = options.volume * this.currentVolume;
 
     const voices = getIndonesianVoices();
-    const selectedVoice = options.gender ? findIndonesianVoice(options.gender) : voices[0];
+    const genderPattern = options.gender === 'female' ? FEMALE_VOICE_NAMES : MALE_VOICE_NAMES;
+    const genderVoice = options.gender
+      ? voices.find((voice) => genderPattern.test(voice.name))
+      : undefined;
+    const selectedVoice = findGoogleIndonesianVoice(voices)
+      ?? genderVoice
+      ?? voices[0];
     if (selectedVoice) {
       utterance.voice = selectedVoice;
     } else if (voices.length > 0) {
       utterance.voice = voices[0];
     }
-    if (options.gender && !findIndonesianVoice(options.gender)) {
+    if (options.gender && !genderVoice) {
       utterance.pitch = options.gender === 'female'
         ? Math.max(options.pitch, 1.15)
         : Math.min(options.pitch, 0.9);
@@ -442,6 +458,7 @@ class AudioEngine {
       rate?: number;
       volume?: number;
       gender?: VoiceGender;
+      preferWebSpeech?: boolean;
       engine?: TtsEngine;
       chime?: 'bank' | 'airport' | 'dingdong' | 'none';
       onStart?: () => void;
@@ -455,6 +472,7 @@ class AudioEngine {
       rate = 0.95,
       volume = 1.0,
       gender,
+      preferWebSpeech = false,
       engine,
       chime = 'bank',
       onStart,
@@ -471,7 +489,12 @@ class AudioEngine {
       if (requestId !== this.speechRequestId) return;
       const speechOptions = { pitch, rate, volume, gender, onStart, onEnd, onError };
       const selectedEngine = engine ?? (isTauri() ? 'piper' : 'system');
-      if (selectedEngine === 'piper' && isTauri()) {
+      if (preferWebSpeech) {
+        this.speakWithWebSpeech(text, requestId, {
+          ...speechOptions,
+          onUnavailable: (message) => onError?.(message),
+        });
+      } else if (selectedEngine === 'piper' && isTauri()) {
         void this.speakWithPiper(text, requestId, volume, rate, onStart, onEnd, onError);
       } else if (selectedEngine === 'system' && isTauri() && /linux/i.test(navigator.userAgent)) {
         void this.speakWithLinuxSystem(

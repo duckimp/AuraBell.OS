@@ -17,11 +17,13 @@ import {
 import { AppData, TargetCategory, TtsCallRecord } from '../types';
 import {
   audioEngine,
+  findGoogleIndonesianVoice,
   findIndonesianVoice,
   getIndonesianVoices,
   TtsEngine,
   VoiceGender,
 } from '../services/audioEngine';
+import { sendRemoteAnnouncement } from '../services/remoteAnnouncements';
 import { isTauri } from '../services/tauriBridge';
 
 interface TtsViewProps {
@@ -58,9 +60,12 @@ export const TtsView: React.FC<TtsViewProps> = ({
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [synthesizedPreview, setSynthesizedPreview] = useState('');
   const [engineNotice, setEngineNotice] = useState('');
+  const [remoteNotice, setRemoteNotice] = useState('');
+  const [isSendingRemote, setIsSendingRemote] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const isOfflineDesktop = isTauri();
   const isLinuxDesktop = isOfflineDesktop && /linux/i.test(navigator.userAgent);
+  const googleIndonesianVoice = findGoogleIndonesianVoice(availableVoices);
 
   useEffect(() => {
     const updateVoices = () => setAvailableVoices(getIndonesianVoices());
@@ -164,6 +169,24 @@ export const TtsView: React.FC<TtsViewProps> = ({
     setIsBroadcasting(false);
   };
 
+  const handleSendRemoteAnnouncement = async () => {
+    if (!synthesizedPreview.trim()) {
+      setRemoteNotice('Teks pengumuman masih kosong.');
+      return;
+    }
+
+    setIsSendingRemote(true);
+    setRemoteNotice('');
+    try {
+      await sendRemoteAnnouncement(synthesizedPreview);
+      setRemoteNotice('Perintah terkirim ke Ruang TU. Pastikan receiver TU aktif dan tersambung internet.');
+    } catch (error) {
+      setRemoteNotice(`Gagal mengirim pengumuman remote: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsSendingRemote(false);
+    }
+  };
+
   // Replay from history
   const handleReplayHistory = (item: TtsCallRecord) => {
     setIsBroadcasting(true);
@@ -201,6 +224,8 @@ export const TtsView: React.FC<TtsViewProps> = ({
                   : isLinuxDesktop
                     ? '• Suara Sistem Linux + Nada Antrian Bank'
                     : '• Web Speech API id-ID + Nada Antrian Bank'
+              : googleIndonesianVoice
+                ? `• ${googleIndonesianVoice.name} via Web Speech + Nada Antrian Bank`
                 : '• Text-to-Speech Web API id-ID + Nada Antrian Bank'}
             </span>
           </div>
@@ -430,7 +455,27 @@ export const TtsView: React.FC<TtsViewProps> = ({
               <Send className="w-4 h-4" />
               <span>{isBroadcasting ? 'Menyiarkan Suara...' : '📢 Putar & Panggil Sekarang'}</span>
             </button>
+            {!isOfflineDesktop && (
+              <button
+                onClick={() => void handleSendRemoteAnnouncement()}
+                disabled={isSendingRemote}
+                className="flex items-center gap-2 rounded-xl border border-primary px-4 py-2.5 text-xs font-headline font-bold text-primary transition-all hover:bg-primary-fixed disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+                <span>{isSendingRemote ? 'Mengirim...' : 'Kirim ke Ruang TU'}</span>
+              </button>
+            )}
           </div>
+          {remoteNotice && (
+            <p role="status" className="rounded-lg bg-tertiary-fixed/60 px-3 py-2 text-xs text-on-surface">
+              {remoteNotice}
+            </p>
+          )}
+          {!isOfflineDesktop && (
+            <p className="text-xs text-on-surface-variant">
+              Perintah remote mengirim teks melalui internet. Voice saat diputar ditentukan oleh Web Speech yang tersedia di komputer TU.
+            </p>
+          )}
         </div>
 
         {/* Right: Sound Modulation & Visualizer */}
@@ -446,7 +491,9 @@ export const TtsView: React.FC<TtsViewProps> = ({
               <span className="text-[11px] text-on-surface-variant font-medium">
                 {isOfflineDesktop
                   ? `Engine: ${ttsEngine === 'system' ? 'Suara Sistem' : 'Piper Offline'}`
-                  : 'Engine: Web Speech'}
+                  : googleIndonesianVoice
+                    ? `Engine: Web Speech · ${googleIndonesianVoice.name}`
+                    : 'Engine: Web Speech'}
               </span>
             </div>
 

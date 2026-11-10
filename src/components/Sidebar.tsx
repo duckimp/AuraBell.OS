@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, LayoutDashboard, Mic2, Music2, CalendarDays, Volume2, GraduationCap, Power, Settings, ExternalLink } from 'lucide-react';
+import { Bell, LayoutDashboard, Mic2, Music2, CalendarDays, Volume2, GraduationCap, Power, Settings, ExternalLink, LogOut } from 'lucide-react';
 import { isTauri } from '../services/tauriBridge';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ interface SidebarProps {
   schoolName: string;
   autoStartEnabled: boolean;
   onToggleAutoStart: () => void;
+  onSignOut: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -20,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   schoolName,
   autoStartEnabled,
   onToggleAutoStart,
+  onSignOut,
 }) => {
   const navItems = [
     {
@@ -155,6 +157,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
         </div>
+        <button
+          onClick={onSignOut}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low hover:text-error"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="max-[1100px]:hidden">Keluar akun</span>
+        </button>
         <div className="mt-4 border-t border-outline-variant/20 pt-3 text-center max-[1100px]:hidden">
           <span className="text-xs text-on-surface-variant">Dibuat oleh </span>
           <a

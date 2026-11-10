@@ -14,8 +14,20 @@ import {
   TargetCategory,
   TtsCallRecord,
 } from './types';
-import { tauriBridge } from './services/tauriBridge';
+import { isTauri, tauriBridge } from './services/tauriBridge';
 import { audioEngine, TtsEngine, VoiceGender } from './services/audioEngine';
+import { supabase } from './services/supabase';
+import {
+  claimRemoteAnnouncement,
+  completeRemoteAnnouncement,
+  REMOTE_RECEIVER_STORAGE_KEY,
+  RemoteReceiverStatus,
+  subscribeToRemoteAnnouncements,
+} from './services/remoteAnnouncements';
+
+interface AppProps {
+  onSignOut: () => void;
+}
 
 const DashboardView = lazy(() =>
   import('./components/DashboardView').then(({ DashboardView }) => ({ default: DashboardView }))
@@ -36,7 +48,7 @@ const SettingsView = lazy(() =>
   import('./components/SettingsView').then(({ SettingsView }) => ({ default: SettingsView }))
 );
 
-export function App() {
+export function App({ onSignOut }: AppProps) {
   const [appData, setAppData] = useState<AppData | null>(null);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
 
@@ -55,6 +67,8 @@ export function App() {
   const appDataRef = useRef(appData);
   appDataRef.current = appData;
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
+  const [remoteReceiverEnabled, setRemoteReceiverEnabled] = useState(false);
+  const [remoteReceiverStatus, setRemoteReceiverStatus] = useState<RemoteReceiverStatus>('disabled');
   const [ttsVoiceGender, setTtsVoiceGender] = useState<VoiceGender>(() =>
     typeof window !== 'undefined' && localStorage.getItem('aurabell_tts_voice') === 'male'
       ? 'male'
@@ -131,6 +145,77 @@ export function App() {
     };
   }, [ttsEngine, ttsVoiceGender]);
 
+  useEffect(() => {
+    const updateReceiverSetting = () => {
+      const enabled = localStorage.getItem(REMOTE_RECEIVER_STORAGE_KEY) === 'true';
+      setRemoteReceiverEnabled(enabled);
+      if (!enabled) setRemoteReceiverStatus('disabled');
+    };
+    updateReceiverSetting();
+    window.addEventListener('storage', updateReceiverSetting);
+    window.addEventListener('aurabell-remote-receiver-config-changed', updateReceiverSetting);
+    return () => {
+      window.removeEventListener('storage', updateReceiverSetting);
+      window.removeEventListener('aurabell-remote-receiver-config-changed', updateReceiverSetting);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!remoteReceiverEnabled || !supabase) return;
+
+    let active = true;
+    setRemoteReceiverStatus('connecting');
+    const unsubscribe = subscribeToRemoteAnnouncements(async (commandId) => {
+      try {
+        const command = await claimRemoteAnnouncement(commandId);
+        if (!active || !command) return;
+
+        const finish = (failure?: string) => {
+          void completeRemoteAnnouncement(command.id, failure).catch((error: unknown) => {
+            console.error('Gagal memperbarui status pengumuman remote:', error);
+          });
+        };
+        audioEngine.speakIndonesian(command.announcement_text, {
+          gender: ttsVoiceGender,
+          rate: 0.95,
+          volume: 1,
+          chime: 'none',
+          preferWebSpeech: true,
+          onEnd: () => {
+            finish();
+            const timestamp = new Date().toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }) + ' WIB';
+            void tauriBridge.addTtsRecord({
+              id: `remote-${command.id}`,
+              timestamp,
+              target_type: 'Umum',
+              target_name: 'Pengumuman Remote',
+              location: 'Ruang TU',
+              message: 'Dikirim dari akun sekolah',
+              chime_preset: 'Tanpa Nada',
+              full_text: command.announcement_text,
+            });
+          },
+          onError: (message) => finish(message),
+        });
+      } catch (error) {
+        console.error('Gagal menerima pengumuman remote:', error);
+      }
+    }, (message) => {
+      console.error(message);
+      if (active) setRemoteReceiverStatus('error');
+    }, (status) => {
+      if (active) setRemoteReceiverStatus(status);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [remoteReceiverEnabled, ttsVoiceGender]);
+
   // Bell actions
   const handleTriggerBell = useCallback(
     (title: string, audioFile: string, category = 'reguler', isEmergency = false) => {
@@ -148,6 +233,18 @@ export function App() {
     audioEngine.stopSpeaking();
     tauriBridge.stopBell();
   }, []);
+
+  const handleSignOut = () => {
+    if (
+      isTauri() &&
+      !window.confirm(
+        'Keluar akun akan menutup penerima pengumuman remote. Jangan keluar dari komputer TU yang menjalankan bel otomatis. Lanjut keluar?'
+      )
+    ) {
+      return;
+    }
+    onSignOut();
+  };
 
   // Emergency Bell
   const handleEmergencyTrigger = useCallback(() => {
@@ -468,6 +565,7 @@ export function App() {
         schoolName={appData.settings.school_name}
         autoStartEnabled={autoStartEnabled}
         onToggleAutoStart={handleToggleAutoStart}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Area */}
@@ -555,6 +653,8 @@ export function App() {
                 appData={appData}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
                 onRestoreBackup={handleRestoreBackup}
+                remoteReceiverEnabled={remoteReceiverEnabled}
+                remoteReceiverStatus={remoteReceiverStatus}
               />
             )}
           </Suspense>
