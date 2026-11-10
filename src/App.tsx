@@ -7,6 +7,7 @@ import { ModalAddSchedule } from './components/ModalAddSchedule';
 import {
   AppData,
   AudioTrack,
+  BellHistoryRecord,
   BellTriggerPayload,
   HolidayEvent,
   ScheduleCategory,
@@ -58,6 +59,10 @@ export function App({ onSignOut }: AppProps) {
   // Active Bell Modal state
   const [activeBell, setActiveBell] = useState<BellTriggerPayload | null>(null);
   const [isBellPlaybackActive, setIsBellPlaybackActive] = useState(false);
+  const [skipOccurrenceKey, setSkipOccurrenceKey] = useState<string | null>(null);
+  const activeHistoryIdRef = useRef<string | null>(null);
+  const testHistoryIdRef = useRef<string | null>(null);
+  const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Add / Edit Schedule Modal state
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
@@ -70,6 +75,55 @@ export function App({ onSignOut }: AppProps) {
   const volumeSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appDataRef = useRef(appData);
   appDataRef.current = appData;
+
+  const updateBellHistoryStatus = useCallback((id: string, status: BellHistoryRecord['status']) => {
+    const current = appDataRef.current;
+    if (!current) return;
+    const updated = {
+      ...current,
+      bell_history: (current.bell_history ?? []).map((record) =>
+        record.id === id ? { ...record, status } : record
+      ),
+    };
+    appDataRef.current = updated;
+    setAppData(updated);
+    void tauriBridge.saveAppData(updated).catch((error: unknown) => {
+      console.error('Gagal memperbarui riwayat bel:', error);
+    });
+    if (activeHistoryIdRef.current === id) activeHistoryIdRef.current = null;
+    if (testHistoryIdRef.current === id) testHistoryIdRef.current = null;
+  }, []);
+
+  const addBellHistory = useCallback((
+    title: string,
+    time: string,
+    source: BellHistoryRecord['source']
+  ): string | null => {
+    const current = appDataRef.current;
+    if (!current) return null;
+    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const record: BellHistoryRecord = {
+      id,
+      timestamp: new Date().toISOString(),
+      time,
+      title,
+      source,
+      status: 'playing',
+    };
+    const updated = {
+      ...current,
+      bell_history: [record, ...(current.bell_history ?? [])].slice(0, 30),
+    };
+    appDataRef.current = updated;
+    setAppData(updated);
+    void tauriBridge.saveAppData(updated).catch((error: unknown) => {
+      console.error('Gagal menyimpan riwayat bel:', error);
+      alert(`Bel berbunyi, tetapi riwayat gagal disimpan: ${String(error)}`);
+    });
+    return id;
+  }, []);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [remoteReceiverEnabled, setRemoteReceiverEnabled] = useState(false);
   const [remoteReceiverStatus, setRemoteReceiverStatus] = useState<RemoteReceiverStatus>('disabled');
@@ -100,9 +154,11 @@ export function App({ onSignOut }: AppProps) {
     tauriBridge.fetchAppData().then((data) => {
       const normalizedData = {
         ...data,
+        bell_history: data.bell_history ?? [],
         settings: {
           ...data.settings,
           music_duck_percent: data.settings.music_duck_percent ?? 20,
+          emergency_audio_file: data.settings.emergency_audio_file ?? '',
         },
       };
       setAppData(normalizedData);
@@ -120,22 +176,49 @@ export function App({ onSignOut }: AppProps) {
   // Set up bell trigger listeners
   useEffect(() => {
     const unlistenTrigger = tauriBridge.onBellTrigger((payload) => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+        previewTimeoutRef.current = null;
+      }
+      if (testHistoryIdRef.current) {
+        updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+      }
+      if (activeHistoryIdRef.current) {
+        updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
+      }
       setActiveBell(payload);
       setIsBellPlaybackActive(true);
       audioEngine.stopBellAudio();
       audioEngine.stopSpeaking();
       audioEngine.stopEmergencySiren();
+      const source: BellHistoryRecord['source'] = payload.is_emergency
+        ? 'emergency'
+        : payload.schedule_id ? 'scheduled' : 'manual';
+      const historyId = addBellHistory(payload.title, payload.time, source);
+      activeHistoryIdRef.current = historyId;
+      const finish = (status: BellHistoryRecord['status']) => {
+        if (historyId) updateBellHistoryStatus(historyId, status);
+        setIsBellPlaybackActive(false);
+      };
       const ttsText = payload.tts_text;
       if (payload.is_emergency) {
-        audioEngine.startEmergencySiren();
+        if (payload.audio_file) {
+          audioEngine.startEmergencyAudio(payload.audio_file, (error) => {
+            console.error('Audio darurat kustom gagal, memakai sirene bawaan:', error);
+            audioEngine.startEmergencySiren();
+            alert('Audio darurat kustom gagal diputar. Sirene bawaan AuraBell.OS akan digunakan.');
+          });
+        } else {
+          audioEngine.startEmergencySiren();
+        }
       } else if (payload.audio_type === 'tts' && !payload.audio_file && ttsText) {
         audioEngine.speakIndonesian(ttsText, {
           gender: ttsVoiceGender,
           engine: ttsEngine,
           chime: 'none',
-          onEnd: () => setIsBellPlaybackActive(false),
+          onEnd: () => finish('completed'),
           onError: (error) => {
-            setIsBellPlaybackActive(false);
+            finish('failed');
             alert(`Gagal memutar TTS bel: ${error}`);
           },
         });
@@ -145,19 +228,33 @@ export function App({ onSignOut }: AppProps) {
               gender: ttsVoiceGender,
               engine: ttsEngine,
               chime: 'none',
-              onEnd: () => setIsBellPlaybackActive(false),
+              onEnd: () => finish('completed'),
               onError: (error) => {
-                setIsBellPlaybackActive(false);
+                finish('failed');
                 alert(`Gagal memutar TTS bel: ${error}`);
               },
             })
-          : () => setIsBellPlaybackActive(false));
+          : () => finish('completed'),
+          { onError: (error) => {
+            finish('failed');
+            alert(`Gagal memutar audio bel: ${error}`);
+          } });
       }
     });
 
     const unlistenStopped = tauriBridge.onBellStopped(() => {
       setActiveBell(null);
       setIsBellPlaybackActive(false);
+      if (activeHistoryIdRef.current) {
+        updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
+      }
+      if (testHistoryIdRef.current) {
+        updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+      }
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+        previewTimeoutRef.current = null;
+      }
       audioEngine.stopEmergencySiren();
       audioEngine.stopBellAudio();
       audioEngine.stopSpeaking();
@@ -167,7 +264,7 @@ export function App({ onSignOut }: AppProps) {
       unlistenTrigger();
       unlistenStopped();
     };
-  }, [ttsEngine, ttsVoiceGender]);
+  }, [addBellHistory, ttsEngine, ttsVoiceGender, updateBellHistoryStatus]);
 
   useEffect(() => {
     const updateReceiverSetting = () => {
@@ -251,14 +348,85 @@ export function App({ onSignOut }: AppProps) {
     [browserBellEnabled]
   );
 
+  const handleTestBellAudio = useCallback(() => {
+    if ((!isTauri() && !browserBellEnabled) || isBellPlaybackActive) return;
+    if (testHistoryIdRef.current) {
+      updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+    }
+    const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const historyId = addBellHistory('Tes output audio (Westminster)', time, 'test');
+    testHistoryIdRef.current = historyId;
+    setIsBellPlaybackActive(true);
+    audioEngine.playSoundFile(
+      'westminster_chime.mp3',
+      () => {
+        if (historyId) updateBellHistoryStatus(historyId, 'completed');
+        setIsBellPlaybackActive(false);
+      },
+      {
+        onError: (error) => {
+          if (historyId) updateBellHistoryStatus(historyId, 'failed');
+          setIsBellPlaybackActive(false);
+          alert(`Tes audio gagal: ${error}`);
+        },
+      }
+    );
+  }, [addBellHistory, browserBellEnabled, isBellPlaybackActive, updateBellHistoryStatus]);
+
+  const handlePreviewEmergencyAudio = useCallback(() => {
+    if ((!isTauri() && !browserBellEnabled) || isBellPlaybackActive) return;
+    if (testHistoryIdRef.current) {
+      updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+    }
+    const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const historyId = addBellHistory('Pratinjau sirene darurat (5 detik)', time, 'test');
+    testHistoryIdRef.current = historyId;
+    setIsBellPlaybackActive(true);
+    const startFallbackSiren = (error?: string) => {
+      if (testHistoryIdRef.current !== historyId) return;
+      if (error) {
+        console.error('Audio sirene pratinjau gagal:', error);
+        alert('Audio sirene pilihan gagal diputar; sirene bawaan dipakai untuk pratinjau.');
+      }
+      audioEngine.startEmergencySiren();
+    };
+    const customAudio = appDataRef.current?.settings.emergency_audio_file ?? '';
+    if (customAudio) {
+      audioEngine.startEmergencyAudio(customAudio, (error) => startFallbackSiren(error));
+    } else {
+      startFallbackSiren();
+    }
+    previewTimeoutRef.current = setTimeout(() => {
+      previewTimeoutRef.current = null;
+      audioEngine.stopEmergencySiren();
+      audioEngine.stopBellAudio();
+      if (historyId) updateBellHistoryStatus(historyId, 'completed');
+      setIsBellPlaybackActive(false);
+    }, 5000);
+  }, [addBellHistory, browserBellEnabled, isBellPlaybackActive, updateBellHistoryStatus]);
+
+  useEffect(() => () => {
+    if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+  }, []);
+
   const handleToggleBrowserBell = () => {
     const enabled = !browserBellEnabled;
     localStorage.setItem(BROWSER_BELL_ENABLED_KEY, String(enabled));
     setBrowserBellEnabled(enabled);
     if (!enabled) {
+      if (activeHistoryIdRef.current) {
+        updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
+      }
+      if (testHistoryIdRef.current) {
+        updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+      }
       setIsBellPlaybackActive(false);
       audioEngine.stopBellAudio();
       audioEngine.stopEmergencySiren();
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+        previewTimeoutRef.current = null;
+      }
       setActiveBell(null);
     }
   };
@@ -266,11 +434,21 @@ export function App({ onSignOut }: AppProps) {
   const handleStopBell = useCallback(() => {
     setActiveBell(null);
     setIsBellPlaybackActive(false);
+    if (activeHistoryIdRef.current) {
+      updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
+    }
+    if (testHistoryIdRef.current) {
+      updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
+    }
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+      previewTimeoutRef.current = null;
+    }
     audioEngine.stopEmergencySiren();
     audioEngine.stopBellAudio();
     audioEngine.stopSpeaking();
     tauriBridge.stopBell();
-  }, []);
+  }, [updateBellHistoryStatus]);
 
   const handleSignOut = () => {
     if (
@@ -288,7 +466,7 @@ export function App({ onSignOut }: AppProps) {
   const handleEmergencyTrigger = useCallback(() => {
     handleTriggerBell(
       'PERINGATAN DARURAT: SIRINE SEKOLAH BERBUNYI',
-      'emergency_siren.mp3',
+      appDataRef.current?.settings.emergency_audio_file ?? '',
       'darurat',
       true
     );
@@ -356,6 +534,11 @@ export function App({ onSignOut }: AppProps) {
     tauriBridge.saveAppData(updated);
   };
 
+  const handleSkipNextBell = async (schedule: { id: string; date: string; time: string }) => {
+    await tauriBridge.skipScheduledOccurrence(schedule.id, schedule.date, schedule.time);
+    setSkipOccurrenceKey(`${schedule.date}|${schedule.time}|${schedule.id}`);
+  };
+
   const handleSaveSchoolSettings = async (schoolName: string, academicYear: string) => {
     if (!appData) return;
     const updated = {
@@ -376,6 +559,16 @@ export function App({ onSignOut }: AppProps) {
     setAppData(updated);
   };
 
+  const handleEmergencyAudioChange = async (filePath: string) => {
+    if (!appData) return;
+    const updated = {
+      ...appData,
+      settings: { ...appData.settings, emergency_audio_file: filePath },
+    };
+    await tauriBridge.saveAppData(updated);
+    setAppData(updated);
+  };
+
   const handleRestoreBackup = async (data: AppData) => {
     if (volumeSaveTimer.current) {
       clearTimeout(volumeSaveTimer.current);
@@ -383,9 +576,11 @@ export function App({ onSignOut }: AppProps) {
     }
     const normalizedData = {
       ...data,
+      bell_history: data.bell_history ?? [],
       settings: {
         ...data.settings,
         music_duck_percent: data.settings.music_duck_percent ?? 20,
+        emergency_audio_file: data.settings.emergency_audio_file ?? '',
       },
     };
     await tauriBridge.saveAppData(normalizedData);
@@ -528,7 +723,10 @@ export function App({ onSignOut }: AppProps) {
         });
       }
       const updatedPlaylist = appData.playlist.filter((t) => t.id !== id);
-      const updated = { ...appData, playlist: updatedPlaylist };
+      const updatedSettings = deletedTrack?.file_path === appData.settings.emergency_audio_file
+        ? { ...appData.settings, emergency_audio_file: '' }
+        : appData.settings;
+      const updated = { ...appData, settings: updatedSettings, playlist: updatedPlaylist };
       setAppData(updated);
       void tauriBridge.saveAppData(updated).catch((error: unknown) => {
         console.error('Gagal menyimpan playlist setelah menghapus audio:', error);
@@ -666,7 +864,14 @@ export function App({ onSignOut }: AppProps) {
               <DashboardView
                 appData={appData}
                 canPlayBell={isTauri() || browserBellEnabled}
+                isBellPlaybackActive={isBellPlaybackActive}
                 onTriggerBell={handleTriggerBell}
+                onTestBellAudio={handleTestBellAudio}
+                onPreviewEmergencyAudio={handlePreviewEmergencyAudio}
+                onSkipNextBell={handleSkipNextBell}
+                skipOccurrenceKey={skipOccurrenceKey}
+                remoteReceiverEnabled={remoteReceiverEnabled}
+                remoteReceiverStatus={remoteReceiverStatus}
                 onSendTts={handleSendTts}
                 onSelectTrack={handleSelectTrack}
                 voiceGender={ttsVoiceGender}
@@ -728,6 +933,7 @@ export function App({ onSignOut }: AppProps) {
                 appData={appData}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
                 onMusicDuckPercentChange={handleMusicDuckPercentChange}
+                onEmergencyAudioChange={handleEmergencyAudioChange}
                 onRestoreBackup={handleRestoreBackup}
                 remoteReceiverEnabled={remoteReceiverEnabled}
                 remoteReceiverStatus={remoteReceiverStatus}

@@ -13,12 +13,14 @@ Catatan handoff untuk melanjutkan pengembangan lintas perangkat tersedia di [DEV
 - Jadwal bel untuk mode **Reguler**, **Ujian**, dan **Ramadan**, dengan pengaturan waktu, hari, status aktif, dan audio per jadwal.
 - Suara jadwal berupa nada bawaan, file audio lokal, TTS, atau nada yang diikuti pengumuman TTS.
 - Scheduler desktop berjalan saat AuraBell.OS terbuka, termasuk saat jendela disembunyikan ke system tray.
+- Dashboard menampilkan jadwal berikutnya, status scheduler/receiver, peringatan volume/audio, tes output, dan pratinjau sirene darurat 5 detik.
+- Bisa melewati satu kejadian jadwal berikutnya dengan konfirmasi; jadwal rutin tidak diubah. Riwayat aktivitas bel lokal menampilkan 30 kejadian terakhir dan status pemutarannya.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.
 - Login email/password Supabase, pengiriman pengumuman remote ke komputer TU, serta PWA yang dapat dipasang dari browser.
 - Pilihan TTS **Suara Sistem** atau **Piper Offline** untuk desktop. Linux mencoba Speech Dispatcher dengan voice Bahasa Indonesia lalu beralih ke Piper jika gagal; platform desktop lain menggunakan Web Speech API dan fallback ke Piper.
 - Pemilihan suara TTS pria/wanita di mode browser, mengikuti voice yang tersedia pada sistem.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.
-- Impor file audio lokal. Di desktop, file disalin ke penyimpanan aplikasi agar tetap tersedia setelah aplikasi ditutup.
+- Impor file audio lokal. Di desktop, file disalin ke penyimpanan aplikasi agar tetap tersedia setelah aplikasi ditutup; sirene darurat juga dapat memakai file dari pustaka.
 - Pengaturan identitas sekolah dan backup/restore.
 
 ## Unduh installer
@@ -62,7 +64,7 @@ npm run dev
 
 Buka alamat lokal yang ditampilkan Vite, biasanya `http://localhost:5173`.
 
-Mode browser berguna untuk melihat antarmuka. **Scheduler bel native dan fitur system tray hanya tersedia di aplikasi desktop.** File audio yang dipilih di browser menggunakan URL sementara dan tidak ikut tersimpan permanen.
+Mode browser berguna untuk melihat antarmuka. **Scheduler bel native dan fitur system tray hanya tersedia di aplikasi desktop.** File audio yang diimpor di browser disimpan di IndexedDB dan tetap tersedia setelah refresh pada browser dan origin yang sama.
 
 ### Jalankan aplikasi desktop
 
@@ -103,9 +105,15 @@ npm run tauri -- build --bundles nsis
 
 ## Penyimpanan data dan backup
 
-Aplikasi desktop menyimpan data jadwal, pengaturan, playlist, riwayat panggilan, dan hari libur sebagai JSON lokal di folder data aplikasi Tauri. File audio yang diimpor disimpan di subfolder audio lokal aplikasi.
+Aplikasi desktop menyimpan data jadwal, pengaturan, playlist, riwayat panggilan, riwayat bel, dan hari libur sebagai JSON lokal di folder data aplikasi Tauri. File audio yang diimpor disimpan di subfolder audio lokal aplikasi.
 
 Saat bel manual, bel terjadwal, atau sirene darurat berbunyi, volume musik player otomatis diredam sementara. Besar volume musik saat prioritas bel dapat diatur di **Pengaturan Sekolah → Prioritas Bel di Atas Musik** (default 20% dari volume player); volume kembali normal setelah bel/pengumuman selesai atau dihentikan. Audio bel WAV/MP3 tetap diputar melalui jalur audionya sendiri.
+
+Untuk memakai sirene darurat sendiri, impor file MP3/WAV melalui halaman **Senam & Audio**, lalu pilih track tersebut di **Pengaturan Sekolah → Audio Bel Darurat**. Audio pilihan akan berulang sampai tombol **Hentikan Bel** ditekan; pilih **Sirene bawaan AuraBell.OS** untuk kembali ke nada sirene sintetis. File tersimpan lokal di perangkat/browser tersebut dan tidak disinkronkan antarperangkat.
+
+Dashboard menyediakan **Tes Output Audio** untuk mencoba nada ke perangkat audio yang sedang dipakai, dan **Pratinjau Sirene (5 dtk)** untuk memeriksa sirene tanpa mengaktifkan kejadian darurat. Riwayat bel menyimpan maksimal 30 aktivitas di perangkat tersebut; pengumuman remote tetap tercatat terpisah di riwayat panggilan.
+
+Tombol **Lewati bel berikutnya** hanya tersedia di aplikasi desktop saat bel otomatis aktif. Setelah konfirmasi, satu kejadian jadwal yang ditampilkan dilewati tanpa mengubah jadwal rutin dan tanpa membuat catatan. Permintaan skip hanya berlaku selama aplikasi berjalan; jika aplikasi ditutup sebelum waktunya, skip tersebut tidak tersimpan.
 
 Buka **Pengaturan Sekolah → Backup & Restore**:
 

@@ -1,4 +1,4 @@
-use chrono::{Datelike, Local};
+use chrono::{Datelike, Local, NaiveDate, NaiveDateTime, NaiveTime};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -86,6 +86,16 @@ pub struct TtsCallRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BellHistoryRecord {
+    pub id: String,
+    pub timestamp: String,
+    pub time: String,
+    pub title: String,
+    pub source: String,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HolidayEvent {
     pub id: String,
     pub date: String,
@@ -102,6 +112,8 @@ pub struct SchoolSettings {
     pub master_volume: u8,
     #[serde(default = "default_music_duck_percent")]
     pub music_duck_percent: u8,
+    #[serde(default)]
+    pub emergency_audio_file: String,
     pub speaker_zones: Vec<String>,
     pub emergency_bell_active: bool,
     pub auto_bell_enabled: bool,
@@ -117,6 +129,8 @@ pub struct AppData {
     pub schedules: Vec<ScheduleItem>,
     pub playlist: Vec<AudioTrack>,
     pub tts_history: Vec<TtsCallRecord>,
+    #[serde(default)]
+    pub bell_history: Vec<BellHistoryRecord>,
     pub holidays: Vec<HolidayEvent>,
 }
 
@@ -148,6 +162,7 @@ pub struct BellTriggerPayload {
 pub struct AppState {
     pub data: Arc<Mutex<AppData>>,
     pub last_triggered_minute: Arc<Mutex<String>>,
+    pub pending_skip: Arc<Mutex<Option<String>>>,
 }
 
 fn get_data_file_path(app: &AppHandle) -> PathBuf {
@@ -179,6 +194,7 @@ fn create_default_data() -> AppData {
             active_mode: "reguler".to_string(),
             master_volume: 85,
             music_duck_percent: default_music_duck_percent(),
+            emergency_audio_file: String::new(),
             speaker_zones: vec![
                 "Hall A & B (Speaker Utama)".to_string(),
                 "Zona Kelas X (10 Ruang)".to_string(),
@@ -383,6 +399,7 @@ fn create_default_data() -> AppData {
         ],
         playlist: Vec::new(),
         tts_history: Vec::new(),
+        bell_history: Vec::new(),
         holidays: Vec::new(),
     }
 }
@@ -605,6 +622,9 @@ fn restore_app_backup(
             schedule.audio_file = path.clone();
         }
     }
+    if let Some(path) = restored_paths.get(&backup.data.settings.emergency_audio_file) {
+        backup.data.settings.emergency_audio_file = path.clone();
+    }
 
     persist_app_data(&app, &backup.data)?;
     {
@@ -642,6 +662,74 @@ fn trigger_bell_manual(
 #[tauri::command]
 fn stop_current_bell(app: AppHandle) -> Result<(), String> {
     app.emit("bell_stopped", ()).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn skip_scheduled_occurrence(
+    state: tauri::State<AppState>,
+    schedule_id: String,
+    date: String,
+    time: String,
+) -> Result<(), String> {
+    let date = NaiveDate::parse_from_str(&date, "%Y-%m-%d")
+        .map_err(|_| "Tanggal jadwal tidak valid.".to_string())?;
+    let time = NaiveTime::parse_from_str(&time, "%H:%M")
+        .map_err(|_| "Waktu jadwal tidak valid.".to_string())?;
+    let target = NaiveDateTime::new(date, time);
+    let now = Local::now().naive_local();
+    if target <= now || target > now + chrono::Duration::days(14) {
+        return Err("Jadwal yang akan dilewati sudah lewat atau terlalu jauh.".to_string());
+    }
+
+    let data = state.data.lock().map_err(|error| error.to_string())?;
+    if !data.settings.auto_bell_enabled {
+        return Err("Bel otomatis sedang nonaktif.".to_string());
+    }
+    if data
+        .holidays
+        .iter()
+        .any(|holiday| holiday.date == date.format("%Y-%m-%d").to_string() && holiday.is_school_off)
+    {
+        return Err("Tanggal tersebut adalah hari libur sekolah.".to_string());
+    }
+    let day = indonesian_day_name(date.weekday());
+    let schedule_exists = data.schedules.iter().any(|item| {
+        item.id == schedule_id
+            && item.active
+            && item.category == data.settings.active_mode
+            && item.time == time.format("%H:%M").to_string()
+            && item.days.iter().any(|item_day| item_day == day)
+    });
+    if !schedule_exists {
+        return Err("Jadwal berikutnya sudah berubah. Muat ulang dashboard lalu coba lagi.".to_string());
+    }
+
+    let key = format!("{}|{}|{}", date.format("%Y-%m-%d"), time.format("%H:%M"), schedule_id);
+    let mut pending_skip = state
+        .pending_skip
+        .lock()
+        .map_err(|error| error.to_string())?;
+    if let Some(existing) = pending_skip.as_deref() {
+        let mut parts = existing.split('|');
+        let existing_target = match (parts.next(), parts.next()) {
+            (Some(existing_date), Some(existing_time)) => {
+                NaiveDate::parse_from_str(existing_date, "%Y-%m-%d")
+                    .ok()
+                    .zip(NaiveTime::parse_from_str(existing_time, "%H:%M").ok())
+                    .map(|(existing_date, existing_time)| {
+                        NaiveDateTime::new(existing_date, existing_time)
+                    })
+            }
+            _ => None,
+        };
+        if existing_target.is_some_and(|existing_target| existing_target <= now) {
+            *pending_skip = None;
+        } else {
+            return Err("Sudah ada satu jadwal yang dikonfirmasi untuk dilewati.".to_string());
+        }
+    }
+    *pending_skip = Some(key);
     Ok(())
 }
 
@@ -1121,6 +1209,7 @@ fn start_scheduler_thread(
     app: AppHandle,
     state: Arc<Mutex<AppData>>,
     last_minute: Arc<Mutex<String>>,
+    pending_skip: Arc<Mutex<Option<String>>>,
 ) {
     std::thread::spawn(move || {
         loop {
@@ -1163,7 +1252,16 @@ fn start_scheduler_thread(
                                 && item.time == current_hm
                                 && item.days.iter().any(|d| d == indonesian_day)
                             {
-                                item_to_trigger = Some(item.clone());
+                                let occurrence_key = format!(
+                                    "{}|{}|{}",
+                                    current_ymd, current_hm, item.id
+                                );
+                                let mut pending = pending_skip.lock().unwrap();
+                                if pending.as_deref() == Some(occurrence_key.as_str()) {
+                                    *pending = None;
+                                } else {
+                                    item_to_trigger = Some(item.clone());
+                                }
                                 break;
                             }
                         }
@@ -1210,13 +1308,20 @@ pub fn run() {
             let initial_data = load_app_data(app.handle());
             let data_arc = Arc::new(Mutex::new(initial_data));
             let last_min_arc = Arc::new(Mutex::new(String::new()));
+            let pending_skip = Arc::new(Mutex::new(None));
 
             // Launch background bell automation thread
-            start_scheduler_thread(app.handle().clone(), data_arc.clone(), last_min_arc.clone());
+            start_scheduler_thread(
+                app.handle().clone(),
+                data_arc.clone(),
+                last_min_arc.clone(),
+                pending_skip.clone(),
+            );
 
             app.manage(AppState {
                 data: data_arc,
                 last_triggered_minute: last_min_arc,
+                pending_skip,
             });
 
             let show_item = MenuItem::with_id(app, "show", "Buka AuraBell.OS", true, None::<&str>)?;
@@ -1249,6 +1354,7 @@ pub fn run() {
             restore_app_backup,
             trigger_bell_manual,
             stop_current_bell,
+            skip_scheduled_occurrence,
             add_tts_record,
             speak_system_tts,
             stop_system_tts,

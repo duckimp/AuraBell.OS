@@ -12,6 +12,7 @@ interface SettingsViewProps {
   appData: AppData;
   onSaveSchoolSettings: (schoolName: string, academicYear: string) => Promise<void>;
   onMusicDuckPercentChange: (percent: number) => Promise<void>;
+  onEmergencyAudioChange: (filePath: string) => Promise<void>;
   onRestoreBackup: (data: AppData) => Promise<void>;
   remoteReceiverEnabled: boolean;
   remoteReceiverStatus: RemoteReceiverStatus;
@@ -35,6 +36,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   appData,
   onSaveSchoolSettings,
   onMusicDuckPercentChange,
+  onEmergencyAudioChange,
   onRestoreBackup,
   remoteReceiverEnabled,
   remoteReceiverStatus,
@@ -42,6 +44,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [schoolName, setSchoolName] = useState(appData.settings.school_name);
   const [academicYear, setAcademicYear] = useState(appData.settings.academic_year);
   const [musicDuckPercent, setMusicDuckPercent] = useState(appData.settings.music_duck_percent ?? 20);
+  const [emergencyAudioFile, setEmergencyAudioFile] = useState(appData.settings.emergency_audio_file ?? '');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
   const browserImportRef = useRef<HTMLInputElement>(null);
@@ -61,7 +64,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setSchoolName(appData.settings.school_name);
     setAcademicYear(appData.settings.academic_year);
     setMusicDuckPercent(appData.settings.music_duck_percent ?? 20);
-  }, [appData.settings.school_name, appData.settings.academic_year, appData.settings.music_duck_percent]);
+    setEmergencyAudioFile(appData.settings.emergency_audio_file ?? '');
+  }, [
+    appData.settings.school_name,
+    appData.settings.academic_year,
+    appData.settings.music_duck_percent,
+    appData.settings.emergency_audio_file,
+  ]);
 
   const handleSaveMusicDuckPercent = async () => {
     setBusy(true);
@@ -71,6 +80,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setStatus({ kind: 'success', message: 'Prioritas volume bel berhasil disimpan.' });
     } catch (error) {
       setStatus({ kind: 'error', message: `Gagal menyimpan volume prioritas bel: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSaveEmergencyAudio = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await onEmergencyAudioChange(emergencyAudioFile);
+      setStatus({ kind: 'success', message: 'Audio darurat berhasil disimpan.' });
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal menyimpan audio darurat: ${String(error)}` });
     } finally {
       setBusy(false);
     }
@@ -263,6 +285,55 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         >
           <Save className="h-4 w-4" />
           Simpan Prioritas Bel
+        </button>
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+        <div className="flex items-center gap-2 border-b border-surface-container pb-3">
+          <Upload className="h-5 w-5 text-primary" />
+          <div>
+            <h2 className="font-headline text-base font-bold text-primary">Audio Bel Darurat</h2>
+            <p className="text-sm text-on-surface-variant">
+              Pilih sirene/audio darurat yang sudah ditambahkan ke pustaka. Audio akan berulang sampai bel dihentikan.
+            </p>
+          </div>
+        </div>
+        <label htmlFor="emergency-audio-file" className="text-sm font-semibold text-on-surface-variant">
+          File audio darurat
+        </label>
+        <select
+          id="emergency-audio-file"
+          value={emergencyAudioFile}
+          onChange={(event) => setEmergencyAudioFile(event.target.value)}
+          className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Sirene bawaan AuraBell.OS</option>
+          {appData.playlist.map((track) => (
+            <option key={track.id} value={track.file_path}>
+              {track.title} ({track.category})
+            </option>
+          ))}
+        </select>
+        {emergencyAudioFile && !appData.playlist.some((track) => track.file_path === emergencyAudioFile) && (
+          <p role="alert" className="rounded-xl bg-error-container px-3 py-2 text-xs text-on-error-container">
+            Audio pilihan tidak ada di pustaka. Pilih file yang tersedia atau unggah ulang dari halaman Senam & Audio.
+          </p>
+        )}
+        <p className="text-xs text-on-surface-variant">
+          Untuk menambahkan sirene sendiri, unduh file audio lalu unggah melalui halaman <strong>Senam & Audio</strong>. File tetap disimpan lokal di perangkat ini.
+        </p>
+        <button
+          type="button"
+          onClick={() => void handleSaveEmergencyAudio()}
+          disabled={
+            busy ||
+            emergencyAudioFile === (appData.settings.emergency_audio_file ?? '') ||
+            Boolean(emergencyAudioFile && !appData.playlist.some((track) => track.file_path === emergencyAudioFile))
+          }
+          className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary hover:bg-primary-container disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          Simpan Audio Darurat
         </button>
       </section>
 

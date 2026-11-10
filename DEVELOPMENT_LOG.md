@@ -2,6 +2,23 @@
 
 This is a rolling handoff for continuing AuraBell.OS work from another device. Update it after a substantial implementation or operational milestone. Do not put credentials, tokens, private URLs, or `.env.local` contents in this file.
 
+## Operational dashboard details — 2026-11-10
+
+- Added dashboard status for desktop scheduler availability, remote receiver state, zero master volume, and an emergency-audio selection that is no longer in the playlist.
+- Added a direct output sound test and a five-second emergency-siren preview. Preview activity is distinct from a real bell and releases the temporary music duck when it ends.
+- Added a local, capped 30-entry bell history with source and playback status. Existing data files load with an empty history; browser history remains local to that browser.
+- Added a confirmation dialog to skip the next scheduled occurrence once. The request is held in memory, does not alter the routine schedule or create a history record, and is lost if the desktop app closes before the occurrence.
+- Corrected the dashboard's next-bell calculation to look ahead across weekdays and school-off holidays, and aligned the countdown with the actual next date.
+- Validation: `npm run build`, `cargo check --manifest-path src-tauri/Cargo.toml`, and `git diff --check` passed. No automated test files are currently defined; the frontend build retains the existing Tauri import and large-chunk warnings.
+
+## Custom emergency audio — 2026-11-10
+
+- Added a school setting to select an emergency audio track already imported into the local audio library. The default remains the built-in synthesized siren.
+- Custom emergency audio loops until the operator stops the bell. If playback fails, the app reports the failure and falls back to the built-in siren; stale playback errors cannot replace a newer bell.
+- Removing the selected track resets the setting to the built-in siren. Existing desktop settings deserialize with an empty custom-audio selection, and desktop backup restore remaps the selected track path.
+- Updated the settings UI and README with the import/select flow and local-only storage behavior.
+- Validation: `npm run build`, `cargo check --manifest-path src-tauri/Cargo.toml`, and `git diff --check` passed. The frontend build retains the existing dynamic/static Tauri import and large-chunk warnings.
+
 ## Local browser audio update — 2026-11-10
 
 - Browser imports now save the actual audio `Blob` in IndexedDB and store a stable IndexedDB reference in the localStorage playlist metadata.

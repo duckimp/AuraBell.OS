@@ -12,16 +12,30 @@ import {
   CheckCircle,
   Radio,
   Send,
-  Dumbbell
+  Dumbbell,
+  CheckCircle2,
+  CircleAlert,
+  History,
+  ShieldAlert,
+  SkipForward,
+  X,
 } from 'lucide-react';
-import { AppData, ScheduleItem, AudioTrack, TargetCategory } from '../types';
+import { AppData, ScheduleItem, AudioTrack, BellHistoryRecord, TargetCategory } from '../types';
 import { audioEngine, TtsEngine, VoiceGender } from '../services/audioEngine';
 import { isTauri } from '../services/tauriBridge';
+import { RemoteReceiverStatus } from '../services/remoteAnnouncements';
 
 interface DashboardViewProps {
   appData: AppData;
   canPlayBell: boolean;
+  isBellPlaybackActive: boolean;
   onTriggerBell: (title: string, audioFile: string, category?: string) => void;
+  onTestBellAudio: () => void;
+  onPreviewEmergencyAudio: () => void;
+  onSkipNextBell: (schedule: { id: string; date: string; time: string }) => Promise<void>;
+  skipOccurrenceKey: string | null;
+  remoteReceiverEnabled: boolean;
+  remoteReceiverStatus: RemoteReceiverStatus;
   onSendTts: (
     targetType: TargetCategory,
     name: string,
@@ -41,7 +55,14 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   appData,
   canPlayBell,
+  isBellPlaybackActive,
   onTriggerBell,
+  onTestBellAudio,
+  onPreviewEmergencyAudio,
+  onSkipNextBell,
+  skipOccurrenceKey,
+  remoteReceiverEnabled,
+  remoteReceiverStatus,
   onSendTts,
   onSelectTrack,
   voiceGender,
@@ -57,6 +78,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [quickLocation, setQuickLocation] = useState('Ruang Piket / Tata Usaha');
   const [quickMessage, setQuickMessage] = useState('');
   const [isCallingTts, setIsCallingTts] = useState(false);
+  const [confirmSkipOpen, setConfirmSkipOpen] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+  const [skipError, setSkipError] = useState<string | null>(null);
 
   // Time & Countdown state
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -91,21 +115,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [currentTime]);
 
   const nextBell = useMemo(() => {
-    if (todaySchedules.length === 0) return null;
-    const sorted = [...todaySchedules].sort((a, b) => a.time.localeCompare(b.time));
-    const upcoming = sorted.find((s) => s.time > currentHm);
-    return upcoming || sorted[0]; // If past last bell, wrap to first bell tomorrow
-  }, [todaySchedules, currentHm]);
+    const weekdayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    for (let offset = 0; offset <= 14; offset += 1) {
+      const date = new Date(currentTime);
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + offset);
+      const dateKey = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+      ].join('-');
+      if (appData.holidays.some((holiday) => holiday.date === dateKey && holiday.is_school_off)) continue;
+      const dayName = weekdayNames[date.getDay()];
+      const candidates = activeModeSchedules
+        .filter((schedule) =>
+          schedule.days.includes(dayName) && (offset > 0 || schedule.time > currentHm)
+        )
+        .sort((a, b) => a.time.localeCompare(b.time));
+      const schedule = candidates.find((candidate) =>
+        `${dateKey}|${candidate.time}|${candidate.id}` !== skipOccurrenceKey
+      );
+      if (schedule) return { ...schedule, date: dateKey };
+    }
+    return null;
+  }, [activeModeSchedules, appData.holidays, currentTime, currentHm, skipOccurrenceKey]);
 
   // Compute countdown to next bell
   const countdownStr = useMemo(() => {
     if (!nextBell) return '--:--';
     const [h, m] = nextBell.time.split(':').map(Number);
     const target = new Date(currentTime);
+    const [year, month, day] = nextBell.date.split('-').map(Number);
+    target.setFullYear(year, month - 1, day);
     target.setHours(h, m, 0, 0);
-    if (target.getTime() <= currentTime.getTime()) {
-      target.setDate(target.getDate() + 1);
-    }
     const diffMs = target.getTime() - currentTime.getTime();
     const diffSec = Math.floor(diffMs / 1000);
     const hrs = Math.floor(diffSec / 3600);
@@ -138,6 +180,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const recentSenamTrack = appData.playlist[0] || null;
+  const recentBellHistory = (appData.bell_history ?? []).slice(0, 5);
+  const receiverStatusText: Record<RemoteReceiverStatus, string> = {
+    disabled: 'Penerima remote nonaktif',
+    connecting: 'Penerima remote menghubungkan',
+    connected: 'Penerima remote siap',
+    error: 'Penerima remote bermasalah',
+  };
+  const emergencyAudioAvailable = !appData.settings.emergency_audio_file ||
+    appData.playlist.some((track) => track.file_path === appData.settings.emergency_audio_file);
+  const skipAlreadyPending = useMemo(() => {
+    if (!skipOccurrenceKey) return false;
+    const [datePart, timePart] = skipOccurrenceKey.split('|');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    const target = new Date(year, month - 1, day, hour, minute);
+    return target.getTime() > currentTime.getTime();
+  }, [skipOccurrenceKey, currentTime]);
+
+  const handleConfirmSkip = async () => {
+    if (!nextBell) return;
+    setIsSkipping(true);
+    setSkipError(null);
+    try {
+      await onSkipNextBell({ id: nextBell.id, date: nextBell.date, time: nextBell.time });
+      setConfirmSkipOpen(false);
+    } catch (error) {
+      setSkipError(String(error));
+    } finally {
+      setIsSkipping(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-space-lg pb-24">
@@ -160,16 +233,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
 
-        {/* Quick bell test trigger */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => onTriggerBell('Uji Coba Nada Westminster', 'westminster_chime.mp3')}
-            disabled={!canPlayBell}
+            onClick={onTestBellAudio}
+            disabled={!canPlayBell || isBellPlaybackActive}
             title={!canPlayBell ? 'Bunyi bel browser dinonaktifkan di navbar.' : undefined}
             className="flex items-center gap-2 bg-white text-primary hover:bg-primary-fixed px-4 py-2.5 rounded-xl font-headline font-bold text-xs shadow-sm transition-all cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Bell className="w-4 h-4 text-primary" />
-            <span>Tes Nada Bel (Westminster)</span>
+            <span>Tes Output Audio</span>
+          </button>
+          <button
+            onClick={onPreviewEmergencyAudio}
+            disabled={!canPlayBell || isBellPlaybackActive}
+            title="Pratinjau sirene darurat selama 5 detik"
+            className="flex items-center gap-2 border border-white/50 bg-black/10 text-white hover:bg-black/20 px-4 py-2.5 rounded-xl font-headline font-bold text-xs transition-all cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            <span>Pratinjau Sirene (5 dtk)</span>
           </button>
         </div>
       </div>
@@ -227,6 +308,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="text-xs font-medium text-white truncate max-w-[180px]">
                 {nextBell ? nextBell.title : 'Tidak ada jadwal tersisa'}
               </span>
+              {nextBell && nextBell.date !== [
+                currentTime.getFullYear(),
+                String(currentTime.getMonth() + 1).padStart(2, '0'),
+                String(currentTime.getDate()).padStart(2, '0'),
+              ].join('-') && (
+                <span className="text-[11px] text-on-primary-container">
+                  {new Date(`${nextBell.date}T12:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}
+                </span>
+              )}
             </div>
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-primary-fixed">
               <Bell className="w-5 h-5" />
@@ -240,6 +330,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {countdownStr}
             </span>
           </div>
+          {isTauri() && appData.settings.auto_bell_enabled && nextBell && (
+            <button
+              type="button"
+              onClick={() => {
+                setSkipError(null);
+                setConfirmSkipOpen(true);
+              }}
+              disabled={skipAlreadyPending}
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 px-3 py-2 text-xs font-bold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <SkipForward className="h-4 w-4" />
+              {skipAlreadyPending ? 'Satu jadwal sudah dikonfirmasi untuk dilewati' : 'Lewati bel berikutnya'}
+            </button>
+          )}
         </div>
 
         {/* Stat 3: Local audio output */}
@@ -257,9 +361,50 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Volume2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-xs">
-            <span className="text-on-surface-variant">Volume master</span>
-            <span className="font-bold text-primary">{appData.settings.master_volume}%</span>
+          <div className="mt-3 space-y-2 border-t border-surface-container pt-3 text-xs">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-on-surface-variant">Volume master</span>
+              <span className={`font-bold ${appData.settings.master_volume === 0 ? 'text-error' : 'text-primary'}`}>
+                {appData.settings.master_volume}%
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isTauri() ? (
+                appData.settings.auto_bell_enabled ? (
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                ) : (
+                  <CircleAlert className="h-4 w-4 text-error" />
+                )
+              ) : (
+                <CircleAlert className="h-4 w-4 text-amber-600" />
+              )}
+              <span className="text-on-surface-variant">
+                {isTauri()
+                  ? appData.settings.auto_bell_enabled ? 'Scheduler desktop aktif' : 'Bel otomatis nonaktif'
+                  : 'Scheduler hanya berjalan di aplikasi desktop'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${
+                remoteReceiverStatus === 'connected' ? 'bg-primary' :
+                  remoteReceiverStatus === 'error' ? 'bg-error' : 'bg-outline-variant'
+              }`} />
+              <span className="text-on-surface-variant">
+                {remoteReceiverEnabled ? receiverStatusText[remoteReceiverStatus] : 'Penerima remote nonaktif'}
+              </span>
+            </div>
+            {appData.settings.master_volume === 0 && (
+              <p className="flex items-center gap-1.5 text-error">
+                <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+                Volume nol — tes audio tidak akan terdengar.
+              </p>
+            )}
+            {!emergencyAudioAvailable && (
+              <p className="flex items-center gap-1.5 text-error">
+                <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+                File sirene pilihan tidak ada di pustaka.
+              </p>
+            )}
           </div>
         </div>
 
@@ -291,6 +436,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+        <div className="mb-3 flex items-center gap-2 border-b border-surface-container pb-3">
+          <History className="h-5 w-5 text-primary" />
+          <div>
+            <h2 className="font-headline text-base font-bold text-primary">Aktivitas Bel Terakhir</h2>
+            <p className="text-xs text-on-surface-variant">Riwayat lokal di perangkat ini; maksimal 30 aktivitas.</p>
+          </div>
+        </div>
+        {recentBellHistory.length === 0 ? (
+          <p className="py-2 text-sm text-on-surface-variant">Bel belum berbunyi pada sesi yang tercatat.</p>
+        ) : (
+          <ul className="divide-y divide-surface-container">
+            {recentBellHistory.map((record: BellHistoryRecord) => (
+              <li key={record.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-on-surface">{record.title}</p>
+                  <p className="text-xs text-on-surface-variant">
+                    {new Date(record.timestamp).toLocaleString('id-ID')} · {
+                      record.source === 'scheduled' ? 'Jadwal' :
+                        record.source === 'emergency' ? 'Darurat' :
+                          record.source === 'test' ? 'Tes audio' : 'Manual'
+                    }
+                  </p>
+                </div>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                  record.status === 'failed' ? 'bg-error-container text-on-error-container' :
+                    record.status === 'playing' ? 'bg-amber-100 text-amber-800' :
+                      'bg-surface-container text-on-surface-variant'
+                }`}>
+                  {record.status === 'playing' ? 'Berlangsung' :
+                    record.status === 'completed' ? 'Selesai' :
+                      record.status === 'failed' ? 'Gagal' : 'Dihentikan'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* QUICK ACCESS SPLIT GRID: Instant Senam Player vs Instant TTS Announcement */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
@@ -547,7 +731,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <tbody className="divide-y divide-surface-container">
               {todaySchedules.map((item) => {
                 const isPassed = item.time < currentHm;
-                const isNext = nextBell?.id === item.id;
+                const todayKey = [
+                  currentTime.getFullYear(),
+                  String(currentTime.getMonth() + 1).padStart(2, '0'),
+                  String(currentTime.getDate()).padStart(2, '0'),
+                ].join('-');
+                const isNext = nextBell?.date === todayKey && nextBell.id === item.id;
                 return (
                   <tr
                     key={item.id}
@@ -606,6 +795,67 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </table>
         </div>
       </div>
+      {confirmSkipOpen && nextBell && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="skip-bell-title"
+            className="w-full max-w-md rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-amber-100 p-2 text-amber-800">
+                  <SkipForward className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 id="skip-bell-title" className="font-headline text-lg font-bold text-on-surface">
+                    Lewati bel berikutnya?
+                  </h2>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    <strong>{nextBell.title}</strong> · {nextBell.date} pukul {nextBell.time}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-label="Tutup konfirmasi"
+                onClick={() => setConfirmSkipOpen(false)}
+                className="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-4 rounded-xl bg-surface-container-low p-3 text-sm text-on-surface-variant">
+              Hanya kejadian jadwal ini yang dilewati sekali. Jadwal rutin tidak diubah dan tidak ada catatan yang disimpan.
+            </p>
+            {skipError && (
+              <p role="alert" className="mt-3 rounded-xl bg-error-container p-3 text-sm text-on-error-container">
+                Gagal melewati jadwal: {skipError}
+              </p>
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmSkipOpen(false)}
+                disabled={isSkipping}
+                className="rounded-xl border border-outline-variant/40 px-4 py-2 text-sm font-semibold text-on-surface hover:bg-surface-container disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmSkip()}
+                disabled={isSkipping}
+                className="inline-flex items-center gap-2 rounded-xl bg-error px-4 py-2 text-sm font-bold text-on-error hover:bg-red-700 disabled:opacity-50"
+              >
+                <SkipForward className="h-4 w-4" />
+                {isSkipping ? 'Memproses...' : 'Ya, lewati sekali'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

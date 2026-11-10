@@ -37,6 +37,7 @@ class AudioEngine {
   private bellOscillators = new Set<OscillatorNode>();
   private isEmergencyPlaying = false;
   private emergencyOscillator: OscillatorNode | null = null;
+  private emergencyLfo: OscillatorNode | null = null;
   private emergencyGain: GainNode | null = null;
   private currentVolume = 0.85;
   private currentBellAudio: HTMLAudioElement | null = null;
@@ -209,11 +210,21 @@ class AudioEngine {
     lfo.start();
 
     this.emergencyOscillator = osc;
+    this.emergencyLfo = lfo;
     this.emergencyGain = gain;
   }
 
   public stopEmergencySiren() {
     this.isEmergencyPlaying = false;
+    if (this.emergencyLfo) {
+      try {
+        this.emergencyLfo.stop();
+        this.emergencyLfo.disconnect();
+      } catch (e) {
+        console.error(e);
+      }
+      this.emergencyLfo = null;
+    }
     if (this.emergencyOscillator) {
       try {
         this.emergencyOscillator.stop();
@@ -248,7 +259,11 @@ class AudioEngine {
   }
 
   // Play a stored audio file when available, otherwise use the built-in bell tone.
-  public playSoundFile(filename: string, onFinish?: () => void) {
+  public playSoundFile(
+    filename: string,
+    onFinish?: () => void,
+    options: { loop?: boolean; onError?: (message: string) => void } = {}
+  ) {
     this.stopBellAudio();
     const requestId = this.bellPlaybackRequestId;
     const completeIfCurrent = () => {
@@ -258,17 +273,32 @@ class AudioEngine {
     if (browserAudioId || this.isPlayableFilePath(filename)) {
       const audio = new Audio();
       this.currentBellAudio = audio;
+      let resolvedSource: string | null = null;
       let completed = false;
-      const finish = () => {
+      const finish = (success = true) => {
         if (completed) return;
         completed = true;
-        completeIfCurrent();
+        if (success) completeIfCurrent();
+      };
+      const releaseAudioSource = (source?: string) => {
+        if (this.currentBellAudio === audio) this.currentBellAudio = null;
+        if (browserAudioId && source) {
+          URL.revokeObjectURL(source);
+          if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
+        }
+      };
+      const fail = (message: string, source?: string) => {
+        const isCurrent = requestId === this.bellPlaybackRequestId && this.currentBellAudio === audio;
+        releaseAudioSource(source);
+        if (isCurrent) options.onError?.(message);
+        finish(false);
       };
       const play = async () => {
         try {
           const source = browserAudioId
             ? await getBrowserAudioUrl(browserAudioId)
             : this.resolveAudioSource(filename);
+          resolvedSource = source;
           if (this.currentBellAudio !== audio) {
             if (browserAudioId) URL.revokeObjectURL(source);
             return;
@@ -276,28 +306,21 @@ class AudioEngine {
           if (browserAudioId) this.currentBellObjectUrl = source;
           audio.src = source;
           audio.volume = this.currentVolume;
+          audio.loop = options.loop ?? false;
           audio.onended = () => {
-            if (this.currentBellAudio === audio) this.currentBellAudio = null;
-            if (browserAudioId) {
-              URL.revokeObjectURL(source);
-              if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
-            }
+            releaseAudioSource(source);
             finish();
           };
           audio.onerror = () => {
-            console.error(`Gagal memutar file audio: ${filename}`);
-            if (this.currentBellAudio === audio) this.currentBellAudio = null;
-            if (browserAudioId) {
-              URL.revokeObjectURL(source);
-              if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
-            }
-            finish();
+            const message = `Gagal memutar file audio: ${filename}`;
+            console.error(message);
+            fail(message, source);
           };
           await audio.play();
         } catch (error) {
-          console.error(`Gagal memutar file audio: ${filename}`, error);
-          if (this.currentBellAudio === audio) this.currentBellAudio = null;
-          finish();
+          const message = `Gagal memutar file audio: ${filename}: ${String(error)}`;
+          console.error(message, error);
+          fail(message, resolvedSource ?? undefined);
         }
       };
       void play();
@@ -313,6 +336,14 @@ class AudioEngine {
     } else {
       this.playWestminster(completeIfCurrent);
     }
+  }
+
+  public startEmergencyAudio(filename: string, onError?: (message: string) => void) {
+    if (!getBrowserAudioId(filename) && !this.isPlayableFilePath(filename)) {
+      onError?.(`Path audio darurat tidak valid: ${filename}`);
+      return;
+    }
+    this.playSoundFile(filename, undefined, { loop: true, onError });
   }
 
   public stopBellAudio() {

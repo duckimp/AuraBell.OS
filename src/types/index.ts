@@ -37,6 +37,15 @@ export interface TtsCallRecord {
   full_text: string;
 }
 
+export interface BellHistoryRecord {
+  id: string;
+  timestamp: string;
+  time: string;
+  title: string;
+  source: 'scheduled' | 'manual' | 'emergency' | 'test';
+  status: 'playing' | 'completed' | 'stopped' | 'failed';
+}
+
 export interface HolidayEvent {
   id: string;
   date: string;          // "YYYY-MM-DD"
@@ -51,6 +60,7 @@ export interface SchoolSettings {
   active_mode: ScheduleCategory;
   master_volume: number;
   music_duck_percent: number;
+  emergency_audio_file: string;
   speaker_zones: string[];
   emergency_bell_active: boolean;
   auto_bell_enabled: boolean;
@@ -61,6 +71,7 @@ export interface AppData {
   schedules: ScheduleItem[];
   playlist: AudioTrack[];
   tts_history: TtsCallRecord[];
+  bell_history: BellHistoryRecord[];
   holidays: HolidayEvent[];
 }
 

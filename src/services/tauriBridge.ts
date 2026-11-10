@@ -14,6 +14,7 @@ const defaultAppData: AppData = {
     active_mode: "reguler",
     master_volume: 85,
     music_duck_percent: 20,
+    emergency_audio_file: "",
     speaker_zones: [
       "Hall A & B (Speaker Utama)",
       "Zona Kelas X (10 Ruang)",
@@ -208,6 +209,7 @@ const defaultAppData: AppData = {
   ],
   playlist: [],
   tts_history: [],
+  bell_history: [],
   holidays: [],
 };
 
@@ -311,6 +313,14 @@ export const tauriBridge = {
         } as BellTriggerPayload,
       })
     );
+  },
+
+  async skipScheduledOccurrence(scheduleId: string, date: string, time: string): Promise<void> {
+    if (!isTauri()) {
+      throw new Error('Lewati jadwal otomatis hanya tersedia di aplikasi desktop.');
+    }
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('skip_scheduled_occurrence', { scheduleId, date, time });
   },
 
   async stopBell(): Promise<void> {
