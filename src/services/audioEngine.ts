@@ -41,6 +41,7 @@ class AudioEngine {
   private currentVolume = 0.85;
   private currentBellAudio: HTMLAudioElement | null = null;
   private currentBellObjectUrl: string | null = null;
+  private bellPlaybackRequestId = 0;
   private currentSpeechSource: AudioBufferSourceNode | null = null;
   private currentSpeechGain: GainNode | null = null;
   private currentSpeechVolume = 1;
@@ -248,11 +249,21 @@ class AudioEngine {
 
   // Play a stored audio file when available, otherwise use the built-in bell tone.
   public playSoundFile(filename: string, onFinish?: () => void) {
+    this.stopBellAudio();
+    const requestId = this.bellPlaybackRequestId;
+    const completeIfCurrent = () => {
+      if (requestId === this.bellPlaybackRequestId) onFinish?.();
+    };
     const browserAudioId = getBrowserAudioId(filename);
     if (browserAudioId || this.isPlayableFilePath(filename)) {
-      this.stopBellAudio();
       const audio = new Audio();
       this.currentBellAudio = audio;
+      let completed = false;
+      const finish = () => {
+        if (completed) return;
+        completed = true;
+        completeIfCurrent();
+      };
       const play = async () => {
         try {
           const source = browserAudioId
@@ -271,7 +282,7 @@ class AudioEngine {
               URL.revokeObjectURL(source);
               if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
             }
-            onFinish?.();
+            finish();
           };
           audio.onerror = () => {
             console.error(`Gagal memutar file audio: ${filename}`);
@@ -280,11 +291,13 @@ class AudioEngine {
               URL.revokeObjectURL(source);
               if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
             }
+            finish();
           };
           await audio.play();
         } catch (error) {
           console.error(`Gagal memutar file audio: ${filename}`, error);
           if (this.currentBellAudio === audio) this.currentBellAudio = null;
+          finish();
         }
       };
       void play();
@@ -292,18 +305,21 @@ class AudioEngine {
     }
 
     if (filename.includes('3_nada') || filename.includes('masuk')) {
-      this.playThreeToneChime(onFinish);
+      this.playThreeToneChime(completeIfCurrent);
     } else if (filename.includes('istirahat')) {
-      this.playAirportChime(onFinish);
+      this.playAirportChime(completeIfCurrent);
     } else if (filename.includes('pulang')) {
-      this.playThreeToneChime(onFinish);
+      this.playThreeToneChime(completeIfCurrent);
     } else {
-      this.playWestminster(onFinish);
+      this.playWestminster(completeIfCurrent);
     }
   }
 
   public stopBellAudio() {
+    this.bellPlaybackRequestId += 1;
     if (this.currentBellAudio) {
+      this.currentBellAudio.onended = null;
+      this.currentBellAudio.onerror = null;
       this.currentBellAudio.pause();
       this.currentBellAudio.currentTime = 0;
       this.currentBellAudio.src = '';

@@ -20,6 +20,7 @@ interface BottomPlayerBarProps {
   onTogglePlay: () => void;
   onPlaybackChange: (playing: boolean) => void;
   volume: number;
+  duckPercent: number;
   onVolumeChange: (vol: number) => void;
 }
 
@@ -29,6 +30,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
   onTogglePlay,
   onPlaybackChange,
   volume,
+  duckPercent,
   onVolumeChange,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -100,7 +102,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
     if (!audio || !currentTrack || loadedTrackId !== currentTrack.id) return;
 
     audio.loop = isLooping;
-    audio.volume = volume / 100;
+    audio.volume = (volume / 100) * (duckPercent / 100);
     if (isPlaying) {
       void audio.play().catch((error: unknown) => {
         console.error(`Gagal memutar audio "${currentTrack.title}"`, error);
@@ -110,11 +112,13 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
     } else {
       audio.pause();
     }
-  }, [currentTrack, loadedTrackId, isPlaying, isLooping, volume, onPlaybackChange]);
+  }, [currentTrack, loadedTrackId, isPlaying, isLooping, volume, duckPercent, onPlaybackChange]);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume / 100;
-  }, [volume]);
+    if (audioRef.current) {
+      audioRef.current.volume = (volume / 100) * (duckPercent / 100);
+    }
+  }, [volume, duckPercent]);
 
   const formatSec = (seconds: number) => {
     const min = Math.floor(seconds / 60);

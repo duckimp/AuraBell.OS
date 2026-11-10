@@ -100,9 +100,15 @@ pub struct SchoolSettings {
     pub academic_year: String,
     pub active_mode: String,   // "reguler" | "ujian" | "ramadan"
     pub master_volume: u8,
+    #[serde(default = "default_music_duck_percent")]
+    pub music_duck_percent: u8,
     pub speaker_zones: Vec<String>,
     pub emergency_bell_active: bool,
     pub auto_bell_enabled: bool,
+}
+
+fn default_music_duck_percent() -> u8 {
+    20
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -172,6 +178,7 @@ fn create_default_data() -> AppData {
             academic_year: "T.A. 2024/2025 - Semester Genap".to_string(),
             active_mode: "reguler".to_string(),
             master_volume: 85,
+            music_duck_percent: default_music_duck_percent(),
             speaker_zones: vec![
                 "Hall A & B (Speaker Utama)".to_string(),
                 "Zona Kelas X (10 Ruang)".to_string(),

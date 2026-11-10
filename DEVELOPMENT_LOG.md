@@ -18,6 +18,13 @@ This is a rolling handoff for continuing AuraBell.OS work from another device. U
 - Desktop Tauri behavior remains unchanged. Remote announcement receiver remains separate and can still speak announcements in the browser.
 - Validation: `npm run build` passed.
 
+## Bell-over-music priority — 2026-11-10
+
+- Added a persisted `music_duck_percent` school setting with a 20% default, including Rust deserialization fallback for existing desktop data files.
+- While a manual/scheduled/emergency bell is active, the music player keeps playing at the configured fraction of its normal volume; the master volume setting/slider is unchanged.
+- Restore the music volume after WAV/MP3 or built-in bell playback and any chained TTS complete, or immediately when the bell is stopped. Audio playback errors also release ducking.
+- Validation: `npm run build` and `cargo check --manifest-path src-tauri/Cargo.toml` passed.
+
 ## Latest session — 2026-11-10
 
 ### Goal

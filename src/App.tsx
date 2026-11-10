@@ -57,6 +57,7 @@ export function App({ onSignOut }: AppProps) {
 
   // Active Bell Modal state
   const [activeBell, setActiveBell] = useState<BellTriggerPayload | null>(null);
+  const [isBellPlaybackActive, setIsBellPlaybackActive] = useState(false);
 
   // Add / Edit Schedule Modal state
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
@@ -97,11 +98,18 @@ export function App({ onSignOut }: AppProps) {
   // Load initial data
   useEffect(() => {
     tauriBridge.fetchAppData().then((data) => {
-      setAppData(data);
-      setMasterVolume(data.settings.master_volume);
-      audioEngine.setVolume(data.settings.master_volume);
-      if (data.playlist.length > 0) {
-        setCurrentTrack(data.playlist[0]);
+      const normalizedData = {
+        ...data,
+        settings: {
+          ...data.settings,
+          music_duck_percent: data.settings.music_duck_percent ?? 20,
+        },
+      };
+      setAppData(normalizedData);
+      setMasterVolume(normalizedData.settings.master_volume);
+      audioEngine.setVolume(normalizedData.settings.master_volume);
+      if (normalizedData.playlist.length > 0) {
+        setCurrentTrack(normalizedData.playlist[0]);
       }
     });
     tauriBridge.getAutostartEnabled().then(setAutoStartEnabled).catch((error: unknown) => {
@@ -113,6 +121,7 @@ export function App({ onSignOut }: AppProps) {
   useEffect(() => {
     const unlistenTrigger = tauriBridge.onBellTrigger((payload) => {
       setActiveBell(payload);
+      setIsBellPlaybackActive(true);
       audioEngine.stopBellAudio();
       audioEngine.stopSpeaking();
       audioEngine.stopEmergencySiren();
@@ -124,7 +133,11 @@ export function App({ onSignOut }: AppProps) {
           gender: ttsVoiceGender,
           engine: ttsEngine,
           chime: 'none',
-          onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
+          onEnd: () => setIsBellPlaybackActive(false),
+          onError: (error) => {
+            setIsBellPlaybackActive(false);
+            alert(`Gagal memutar TTS bel: ${error}`);
+          },
         });
       } else {
         audioEngine.playSoundFile(payload.audio_file, ttsText
@@ -132,14 +145,19 @@ export function App({ onSignOut }: AppProps) {
               gender: ttsVoiceGender,
               engine: ttsEngine,
               chime: 'none',
-              onError: (error) => alert(`Gagal memutar TTS bel: ${error}`),
+              onEnd: () => setIsBellPlaybackActive(false),
+              onError: (error) => {
+                setIsBellPlaybackActive(false);
+                alert(`Gagal memutar TTS bel: ${error}`);
+              },
             })
-          : undefined);
+          : () => setIsBellPlaybackActive(false));
       }
     });
 
     const unlistenStopped = tauriBridge.onBellStopped(() => {
       setActiveBell(null);
+      setIsBellPlaybackActive(false);
       audioEngine.stopEmergencySiren();
       audioEngine.stopBellAudio();
       audioEngine.stopSpeaking();
@@ -238,6 +256,7 @@ export function App({ onSignOut }: AppProps) {
     localStorage.setItem(BROWSER_BELL_ENABLED_KEY, String(enabled));
     setBrowserBellEnabled(enabled);
     if (!enabled) {
+      setIsBellPlaybackActive(false);
       audioEngine.stopBellAudio();
       audioEngine.stopEmergencySiren();
       setActiveBell(null);
@@ -246,6 +265,7 @@ export function App({ onSignOut }: AppProps) {
 
   const handleStopBell = useCallback(() => {
     setActiveBell(null);
+    setIsBellPlaybackActive(false);
     audioEngine.stopEmergencySiren();
     audioEngine.stopBellAudio();
     audioEngine.stopSpeaking();
@@ -346,18 +366,36 @@ export function App({ onSignOut }: AppProps) {
     setAppData(updated);
   };
 
+  const handleMusicDuckPercentChange = async (percent: number) => {
+    if (!appData) return;
+    const updated = {
+      ...appData,
+      settings: { ...appData.settings, music_duck_percent: percent },
+    };
+    await tauriBridge.saveAppData(updated);
+    setAppData(updated);
+  };
+
   const handleRestoreBackup = async (data: AppData) => {
     if (volumeSaveTimer.current) {
       clearTimeout(volumeSaveTimer.current);
       volumeSaveTimer.current = null;
     }
-    await tauriBridge.saveAppData(data);
+    const normalizedData = {
+      ...data,
+      settings: {
+        ...data.settings,
+        music_duck_percent: data.settings.music_duck_percent ?? 20,
+      },
+    };
+    await tauriBridge.saveAppData(normalizedData);
     audioEngine.stopBellAudio();
     audioEngine.stopSpeaking();
-    setAppData(data);
-    setMasterVolume(data.settings.master_volume);
-    audioEngine.setVolume(data.settings.master_volume);
-    setCurrentTrack(data.playlist[0] || null);
+    setIsBellPlaybackActive(false);
+    setAppData(normalizedData);
+    setMasterVolume(normalizedData.settings.master_volume);
+    audioEngine.setVolume(normalizedData.settings.master_volume);
+    setCurrentTrack(normalizedData.playlist[0] || null);
     setIsPlayingMusic(false);
   };
 
@@ -689,6 +727,7 @@ export function App({ onSignOut }: AppProps) {
               <SettingsView
                 appData={appData}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
+                onMusicDuckPercentChange={handleMusicDuckPercentChange}
                 onRestoreBackup={handleRestoreBackup}
                 remoteReceiverEnabled={remoteReceiverEnabled}
                 remoteReceiverStatus={remoteReceiverStatus}
@@ -705,6 +744,7 @@ export function App({ onSignOut }: AppProps) {
         onTogglePlay={handleTogglePlayMusic}
         onPlaybackChange={handlePlaybackChange}
         volume={masterVolume}
+        duckPercent={isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
         onVolumeChange={handleVolumeChange}
       />
 

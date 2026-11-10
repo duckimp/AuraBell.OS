@@ -13,6 +13,7 @@ const defaultAppData: AppData = {
     academic_year: "T.A. 2024/2025 - Semester Genap",
     active_mode: "reguler",
     master_volume: 85,
+    music_duck_percent: 20,
     speaker_zones: [
       "Hall A & B (Speaker Utama)",
       "Zona Kelas X (10 Ruang)",

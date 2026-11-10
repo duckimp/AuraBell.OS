@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { Download, GraduationCap, RotateCcw, Save, Upload } from 'lucide-react';
+import { Download, GraduationCap, RotateCcw, Save, Upload, Volume2 } from 'lucide-react';
 import { AppData } from '../types';
 import { isTauri, tauriBridge } from '../services/tauriBridge';
 import {
@@ -11,6 +11,7 @@ import {
 interface SettingsViewProps {
   appData: AppData;
   onSaveSchoolSettings: (schoolName: string, academicYear: string) => Promise<void>;
+  onMusicDuckPercentChange: (percent: number) => Promise<void>;
   onRestoreBackup: (data: AppData) => Promise<void>;
   remoteReceiverEnabled: boolean;
   remoteReceiverStatus: RemoteReceiverStatus;
@@ -33,12 +34,14 @@ function isAppData(value: unknown): value is AppData {
 export const SettingsView: React.FC<SettingsViewProps> = ({
   appData,
   onSaveSchoolSettings,
+  onMusicDuckPercentChange,
   onRestoreBackup,
   remoteReceiverEnabled,
   remoteReceiverStatus,
 }) => {
   const [schoolName, setSchoolName] = useState(appData.settings.school_name);
   const [academicYear, setAcademicYear] = useState(appData.settings.academic_year);
+  const [musicDuckPercent, setMusicDuckPercent] = useState(appData.settings.music_duck_percent ?? 20);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
   const browserImportRef = useRef<HTMLInputElement>(null);
@@ -57,7 +60,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   useEffect(() => {
     setSchoolName(appData.settings.school_name);
     setAcademicYear(appData.settings.academic_year);
-  }, [appData.settings.school_name, appData.settings.academic_year]);
+    setMusicDuckPercent(appData.settings.music_duck_percent ?? 20);
+  }, [appData.settings.school_name, appData.settings.academic_year, appData.settings.music_duck_percent]);
+
+  const handleSaveMusicDuckPercent = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      await onMusicDuckPercentChange(musicDuckPercent);
+      setStatus({ kind: 'success', message: 'Prioritas volume bel berhasil disimpan.' });
+    } catch (error) {
+      setStatus({ kind: 'error', message: `Gagal menyimpan volume prioritas bel: ${String(error)}` });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleSaveSchool = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -210,6 +227,44 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           Simpan Pengaturan
         </button>
       </form>
+
+      <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+        <div className="flex items-center gap-2 border-b border-surface-container pb-3">
+          <Volume2 className="h-5 w-5 text-primary" />
+          <div>
+            <h2 className="font-headline text-base font-bold text-primary">Prioritas Bel di Atas Musik</h2>
+            <p className="text-sm text-on-surface-variant">
+              Saat bel atau audio pengumuman berjalan, musik tetap diputar lebih pelan lalu kembali ke volume semula.
+            </p>
+          </div>
+        </div>
+        <label htmlFor="music-duck-percent" className="flex items-center justify-between gap-4 text-sm font-semibold text-on-surface-variant">
+          Volume musik saat bel berbunyi
+          <span className="font-mono font-bold text-primary">{musicDuckPercent}%</span>
+        </label>
+        <input
+          id="music-duck-percent"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value={musicDuckPercent}
+          onChange={(event) => setMusicDuckPercent(Number(event.target.value))}
+          className="h-2 w-full cursor-pointer accent-primary"
+        />
+        <p className="text-xs text-on-surface-variant">
+          Persentase dari volume musik saat ini. Contoh: musik 80% dan prioritas 20% menghasilkan volume sementara 16%. Berlaku untuk bel manual, jadwal otomatis, dan darurat.
+        </p>
+        <button
+          type="button"
+          onClick={() => void handleSaveMusicDuckPercent()}
+          disabled={busy || musicDuckPercent === (appData.settings.music_duck_percent ?? 20)}
+          className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary hover:bg-primary-container disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          Simpan Prioritas Bel
+        </button>
+      </section>
 
       <section className="flex flex-col gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
         <div className="flex items-center justify-between gap-4">

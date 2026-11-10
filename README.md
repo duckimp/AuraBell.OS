@@ -105,6 +105,8 @@ npm run tauri -- build --bundles nsis
 
 Aplikasi desktop menyimpan data jadwal, pengaturan, playlist, riwayat panggilan, dan hari libur sebagai JSON lokal di folder data aplikasi Tauri. File audio yang diimpor disimpan di subfolder audio lokal aplikasi.
 
+Saat bel manual, bel terjadwal, atau sirene darurat berbunyi, volume musik player otomatis diredam sementara. Besar volume musik saat prioritas bel dapat diatur di **Pengaturan Sekolah → Prioritas Bel di Atas Musik** (default 20% dari volume player); volume kembali normal setelah bel/pengumuman selesai atau dihentikan. Audio bel WAV/MP3 tetap diputar melalui jalur audionya sendiri.
+
 Buka **Pengaturan Sekolah → Backup & Restore**:
 
 - Backup desktop berupa ZIP berisi data aplikasi dan file audio lokal.

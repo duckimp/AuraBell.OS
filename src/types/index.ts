@@ -50,6 +50,7 @@ export interface SchoolSettings {
   academic_year: string;
   active_mode: ScheduleCategory;
   master_volume: number;
+  music_duck_percent: number;
   speaker_zones: string[];
   emergency_bell_active: boolean;
   auto_bell_enabled: boolean;
