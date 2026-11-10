@@ -17,6 +17,7 @@ Catatan handoff untuk melanjutkan pengembangan lintas perangkat tersedia di [DEV
 - Bisa melewati satu kejadian jadwal berikutnya dengan konfirmasi; jadwal rutin tidak diubah. Riwayat aktivitas bel lokal menampilkan 30 kejadian terakhir dan status pemutarannya.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.
 - Login email/password Supabase, pengiriman pengumuman remote ke komputer TU, serta PWA yang dapat dipasang dari browser.
+- Tampilan browser responsif untuk ponsel dengan navigasi bawah dan kontrol pemutar yang ringkas.
 - Pilihan TTS **Suara Sistem** atau **Piper Offline** untuk desktop. Linux mencoba Speech Dispatcher dengan voice Bahasa Indonesia lalu beralih ke Piper jika gagal; platform desktop lain menggunakan Web Speech API dan fallback ke Piper.
 - Pemilihan suara TTS pria/wanita di mode browser, mengikuti voice yang tersedia pada sistem.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.

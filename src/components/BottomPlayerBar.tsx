@@ -145,49 +145,49 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-72 max-[1100px]:left-20 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/30 shadow-lg z-40 px-gutter-desktop max-[1100px]:px-4 flex items-center justify-between gap-3 max-[1100px]:gap-2 select-none">
-      <div className="flex items-center gap-3 w-72 max-[1100px]:w-[30%] min-w-0">
-        <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shadow-sm shrink-0">
+    <div className="fixed bottom-0 left-72 max-[1100px]:left-20 max-[700px]:left-0 right-0 h-20 max-[700px]:h-14 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/30 shadow-lg z-40 px-gutter-desktop max-[1100px]:px-4 max-[700px]:px-2 flex items-center justify-between gap-3 max-[1100px]:gap-2 max-[700px]:gap-2 select-none">
+      <div className="flex items-center gap-3 w-72 max-[1100px]:w-[30%] max-[700px]:w-[28%] min-w-0">
+        <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shadow-sm shrink-0 max-[700px]:hidden">
           <Radio className={`w-6 h-6 text-primary-fixed ${isPlaying ? 'animate-pulse' : ''}`} />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-headline font-bold text-sm text-on-surface truncate">
             {currentTrack ? currentTrack.title : 'Pilih lagu'}
           </span>
-          <span className={`text-xs truncate ${playbackError ? 'text-error' : 'text-on-surface-variant'}`}>
+          <span className={`text-xs truncate max-[700px]:hidden ${playbackError ? 'text-error' : 'text-on-surface-variant'}`}>
             {playbackError || (currentTrack ? `${currentTrack.category} · ${currentTrack.source === 'youtube' ? 'YouTube' : 'Lokal'}` : 'Belum ada audio')}
           </span>
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col items-center gap-1.5 flex-1 max-w-xl px-4 max-[1100px]:px-1">
-        <div className="flex items-center gap-4">
-          <button onClick={() => seek(-10)} disabled={!currentTrack} title="Mundur 10 detik" className="text-on-surface-variant hover:text-primary disabled:opacity-40">
+      <div className="flex min-w-0 flex-col items-center gap-1.5 flex-1 max-w-xl px-4 max-[1100px]:px-1 max-[700px]:flex-row max-[700px]:justify-center max-[700px]:gap-2">
+        <div className="flex items-center gap-4 max-[700px]:gap-2">
+          <button onClick={() => seek(-10)} disabled={!currentTrack} title="Mundur 10 detik" className="text-on-surface-variant hover:text-primary disabled:opacity-40 max-[700px]:hidden">
             <SkipBack className="w-4 h-4" />
           </button>
           <button
             onClick={onTogglePlay}
             disabled={!currentTrack}
             aria-label={isPlaying ? 'Jeda audio' : 'Putar audio'}
-            className="w-10 h-10 rounded-full bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center shadow-sm disabled:opacity-40"
+            className="w-10 h-10 max-[700px]:w-9 max-[700px]:h-9 rounded-full bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center shadow-sm disabled:opacity-40"
           >
             {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
           </button>
-          <button onClick={() => seek(10)} disabled={!currentTrack} title="Maju 10 detik" className="text-on-surface-variant hover:text-primary disabled:opacity-40">
+          <button onClick={() => seek(10)} disabled={!currentTrack} title="Maju 10 detik" className="text-on-surface-variant hover:text-primary disabled:opacity-40 max-[700px]:hidden">
             <SkipForward className="w-4 h-4" />
           </button>
           <button
             onClick={() => setIsLooping((looping) => !looping)}
             aria-label="Ulangi lagu"
             aria-pressed={isLooping}
-            className={isLooping ? 'text-primary' : 'text-outline-variant hover:text-on-surface-variant'}
+            className={`max-[700px]:hidden ${isLooping ? 'text-primary' : 'text-outline-variant hover:text-on-surface-variant'}`}
           >
             <Repeat className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="w-full flex items-center gap-2">
-          <span className="text-xs font-mono text-on-surface-variant w-10 text-right">{formatSec(progressSec)}</span>
+        <div className="w-full flex items-center gap-2 max-[700px]:w-20 max-[700px]:shrink">
+          <span className="text-xs font-mono text-on-surface-variant w-10 text-right max-[700px]:hidden">{formatSec(progressSec)}</span>
           <input
             type="range"
             min="0"
@@ -198,11 +198,11 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
             aria-label="Posisi audio"
             className="w-full h-1.5 bg-surface-container rounded-lg accent-primary cursor-pointer disabled:opacity-50"
           />
-          <span className="text-xs font-mono text-on-surface-variant w-10">{formatSec(durationSec)}</span>
+          <span className="text-xs font-mono text-on-surface-variant w-10 max-[700px]:hidden">{formatSec(durationSec)}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 w-60 max-[1100px]:w-auto justify-end">
+      <div className="flex items-center gap-2.5 w-60 max-[1100px]:w-auto max-[700px]:w-auto justify-end">
         <button onClick={toggleMute} aria-label={isMuted || volume === 0 ? 'Nyalakan volume' : 'Bisukan audio'} className="text-on-surface-variant hover:text-primary">
           {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-error" /> : <Volume2 className="w-4 h-4" />}
         </button>

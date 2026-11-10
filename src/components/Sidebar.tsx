@@ -64,10 +64,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const mode = modeLabel[activeMode] || modeLabel['reguler'];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-72 max-[1100px]:w-20 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.06)] z-50 flex flex-col justify-between overflow-y-auto border-r border-outline-variant/20 select-none">
-      <div className="p-space-lg max-[1100px]:p-3 flex flex-col gap-space-md max-[1100px]:gap-3">
+    <aside className="fixed left-0 top-0 h-full w-72 max-[1100px]:w-20 max-[700px]:top-auto max-[700px]:bottom-14 max-[700px]:h-14 max-[700px]:w-full bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.06)] z-50 flex flex-col max-[700px]:flex-row justify-between overflow-y-auto max-[700px]:overflow-visible border-r border-outline-variant/20 max-[700px]:border-r-0 max-[700px]:border-t select-none">
+      <div className="p-space-lg max-[1100px]:p-3 max-[700px]:h-full max-[700px]:flex-1 max-[700px]:p-1 flex flex-col max-[700px]:flex-row gap-space-md max-[1100px]:gap-3 max-[700px]:gap-0">
         {/* App Branding */}
-        <div className="flex items-center gap-space-sm pb-4 border-b border-surface-container-low max-[1100px]:justify-center max-[1100px]:pb-3">
+        <div className="flex items-center gap-space-sm pb-4 border-b border-surface-container-low max-[1100px]:justify-center max-[1100px]:pb-3 max-[700px]:hidden">
           <div className="w-11 h-11 rounded-xl bg-primary-container flex items-center justify-center shadow-sm ring-2 ring-primary/10 shrink-0">
             <Bell className="w-6 h-6 text-primary-fixed" strokeWidth={2.5} />
           </div>
@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Current Active Mode Tag */}
-        <div title={`Mode jadwal: ${mode.label}`} className="bg-surface-container-low px-3 py-2.5 rounded-xl flex items-center justify-between max-[1100px]:justify-center max-[1100px]:px-1">
+        <div title={`Mode jadwal: ${mode.label}`} className="bg-surface-container-low px-3 py-2.5 rounded-xl flex items-center justify-between max-[1100px]:justify-center max-[1100px]:px-1 max-[700px]:hidden">
           <span className="text-sm font-semibold text-on-surface max-[1100px]:hidden">Mode jadwal</span>
           <span className={`font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-[11px] shadow-sm ${mode.color} max-[1100px]:px-1.5`}>
             {mode.label}
@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex flex-col gap-1 pt-1 max-[1100px]:items-center">
+        <nav className="flex flex-col gap-1 pt-1 max-[1100px]:items-center max-[700px]:h-full max-[700px]:w-full max-[700px]:flex-row max-[700px]:justify-around max-[700px]:gap-0 max-[700px]:pt-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   isActive
                     ? 'bg-primary-container text-on-primary shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                } max-[1100px]:w-12 max-[1100px]:justify-center max-[1100px]:px-1`}
+                } max-[1100px]:w-12 max-[1100px]:justify-center max-[1100px]:px-1 max-[700px]:h-12 max-[700px]:w-12 max-[700px]:flex-1 max-[700px]:rounded-lg max-[700px]:px-0`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   isActive
@@ -127,11 +127,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={onSignOut}
+            title="Keluar akun"
+            aria-label="Keluar akun"
+            className="hidden max-[700px]:flex h-12 w-12 flex-1 items-center justify-center rounded-xl text-on-surface-variant hover:bg-error-container hover:text-error"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </nav>
       </div>
 
       {/* Speaker / Hardware Status Widget */}
-      <div className="p-4 m-4 mt-0 max-[1100px]:p-2 max-[1100px]:m-2">
+      <div className="p-4 m-4 mt-0 max-[1100px]:p-2 max-[1100px]:m-2 max-[700px]:hidden">
         <div className="bg-surface-container-low rounded-xl p-3 flex flex-col gap-2 border border-outline-variant/20">
           <div title={`Volume master: ${masterVolume}%`} className="flex items-center justify-between max-[1100px]:justify-center">
             <span className="text-sm text-on-surface font-semibold flex items-center gap-1.5">

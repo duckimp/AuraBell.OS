@@ -51,20 +51,23 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="fixed top-0 left-72 max-[1100px]:left-20 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_6px_rgba(0,0,0,0.05)] border-b border-outline-variant/20 z-40 px-6 max-[1100px]:px-3 flex items-center justify-between gap-2 select-none">
+    <header className="fixed top-0 left-72 max-[1100px]:left-20 max-[700px]:left-0 right-0 h-16 max-[700px]:h-16 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_6px_rgba(0,0,0,0.05)] border-b border-outline-variant/20 z-40 px-6 max-[1100px]:px-3 max-[700px]:px-2 flex items-center justify-between gap-2 max-[700px]:gap-1 select-none">
       {/* Left Info */}
-      <div className="flex min-w-0 items-center gap-3 max-[1100px]:gap-2">
+      <div className="flex min-w-0 items-center gap-3 max-[1100px]:gap-2 max-[700px]:gap-1">
         {/* Academic Year + School badge */}
-        <div className="flex min-w-0 flex-col bg-surface-container-low px-3 py-1.5 rounded-lg max-[1100px]:px-2">
-          <span className="max-[1100px]:hidden text-sm font-semibold text-on-surface">{schoolName}</span>
-          <span className="text-xs text-on-surface-variant">{academicYear}</span>
+        <div className="flex min-w-0 flex-col bg-surface-container-low px-3 py-1.5 rounded-lg max-[1100px]:px-2 max-[700px]:bg-transparent max-[700px]:px-1 max-[700px]:py-1">
+          <span className="max-[1100px]:hidden max-[700px]:block text-sm max-[700px]:text-xs font-semibold text-on-surface truncate">{schoolName}</span>
+          <span className="text-xs max-[700px]:hidden text-on-surface-variant">{academicYear}</span>
+          <span className="hidden max-[700px]:block text-[10px] font-semibold uppercase text-primary">
+            Mode {activeMode}
+          </span>
         </div>
 
         {isDesktop ? (
           <button
             onClick={onToggleAutoBell}
             title="Klik untuk mengaktifkan/menonaktifkan penjadwalan otomatis"
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer border ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer border max-[700px]:gap-1 max-[700px]:px-2 max-[700px]:py-2 ${
               autoBellEnabled
                 ? 'bg-primary/8 border-primary/20 text-primary hover:bg-primary/12'
                 : 'bg-error-container/60 border-error/20 text-error hover:bg-error-container'
@@ -78,13 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="max-[1100px]:hidden">Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
-                <span className="hidden max-[1100px]:inline">Otomatis</span>
+                <span className="hidden max-[1100px]:inline max-[700px]:hidden">Otomatis</span>
               </>
             ) : (
               <>
                 <Power className="w-3.5 h-3.5" />
                 <span className="max-[1100px]:hidden">Bel otomatis mati</span>
-                <span className="hidden max-[1100px]:inline">Mati</span>
+                <span className="hidden max-[1100px]:inline max-[700px]:hidden">Mati</span>
               </>
             )}
           </button>
@@ -95,20 +98,20 @@ export const Header: React.FC<HeaderProps> = ({
             aria-checked={browserBellEnabled}
             onClick={onToggleBrowserBell}
             title={browserBellEnabled ? 'Nonaktifkan semua bunyi bel di browser' : 'Aktifkan bunyi bel di browser'}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-all max-[700px]:gap-0 max-[700px]:px-2 ${
               browserBellEnabled
                 ? 'border-error/30 bg-error-container/60 text-error hover:bg-error-container'
                 : 'border-primary/20 bg-primary/8 text-primary hover:bg-primary/12'
             }`}
           >
             <Bell className="h-4 w-4" />
-            <span>{browserBellEnabled ? 'Bel browser aktif' : 'Bel browser nonaktif'}</span>
+            <span className="max-[700px]:hidden">{browserBellEnabled ? 'Bel browser aktif' : 'Bel browser nonaktif'}</span>
           </button>
         )}
       </div>
 
       {/* Right Controls */}
-      <div className="flex shrink-0 items-center gap-3 max-[1100px]:gap-2">
+      <div className="flex shrink-0 items-center gap-3 max-[1100px]:gap-2 max-[700px]:gap-1">
         {/* Real-time Clock */}
         <div className="hidden min-[1101px]:flex flex-col text-right items-end pr-3 border-r border-outline-variant/30">
           <div className="flex items-center gap-1.5 font-mono font-bold text-[15px] text-on-surface tabular-nums tracking-wider">
@@ -123,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onEmergencyTrigger}
             title="Darurat: Bunyikan Bel"
-            className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95"
+            className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95 max-[700px]:px-2 max-[700px]:py-2"
             type="button"
           >
             <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
