@@ -56,7 +56,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex min-w-0 items-center gap-3 max-[1100px]:gap-2 max-[700px]:gap-1">
         {/* Academic Year + School badge */}
         <div className="flex min-w-0 flex-col bg-surface-container-low px-3 py-1.5 rounded-lg max-[1100px]:px-2 max-[700px]:bg-transparent max-[700px]:px-1 max-[700px]:py-1">
-          <span className="max-[1100px]:hidden max-[700px]:block text-sm max-[700px]:text-xs font-semibold text-on-surface truncate">{schoolName}</span>
+          <span className="max-[1100px]:hidden text-sm font-semibold text-on-surface truncate">{schoolName}</span>
+          <span className="hidden max-[700px]:block text-xs font-semibold text-on-surface truncate">Andi Mariono</span>
           <span className="text-xs max-[700px]:hidden text-on-surface-variant">{academicYear}</span>
           <span className="hidden max-[700px]:block text-[10px] font-semibold uppercase text-primary">
             Mode {activeMode}
