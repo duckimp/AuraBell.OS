@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { AppData, AudioTrack } from '../types';
 import { isTauri } from '../services/tauriBridge';
+import {
+  fetchRemoteAudioLibrary,
+  RemoteAudioAction,
+  RemoteAudioTrack,
+} from '../services/remoteAnnouncements';
 
 interface AudioPlayerViewProps {
   appData: AppData;
@@ -29,6 +34,7 @@ interface AudioPlayerViewProps {
   onImportYouTube: (url: string, category: string, title?: string) => Promise<void>;
   onImportLocal: (file: File | string, category: string) => Promise<AudioTrack>;
   onAddToSchedule: (track: AudioTrack) => void;
+  onRemoteAudioCommand: (action: RemoteAudioAction, trackId?: string) => Promise<void>;
 }
 
 export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
@@ -41,6 +47,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
   onImportYouTube,
   onImportLocal,
   onAddToSchedule,
+  onRemoteAudioCommand,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [ytUrl, setYtUrl] = useState('');
@@ -54,6 +61,11 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
   const [localImportError, setLocalImportError] = useState<string | null>(null);
   const [isImportingLocal, setIsImportingLocal] = useState(false);
   const localFileInput = useRef<HTMLInputElement>(null);
+  const [remoteTracks, setRemoteTracks] = useState<RemoteAudioTrack[]>([]);
+  const [remoteOnline, setRemoteOnline] = useState(false);
+  const [remoteLoading, setRemoteLoading] = useState(false);
+  const [remoteError, setRemoteError] = useState<string | null>(null);
+  const [remoteActionBusy, setRemoteActionBusy] = useState(false);
 
   const categories = [
     'Semua',
@@ -67,6 +79,40 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
     if (selectedCategory === 'Semua') return true;
     return tr.category === selectedCategory;
   });
+
+  const refreshRemoteLibrary = async () => {
+    setRemoteLoading(true);
+    setRemoteError(null);
+    try {
+      const catalog = await fetchRemoteAudioLibrary();
+      setRemoteTracks(catalog.tracks);
+      setRemoteOnline(catalog.isOnline);
+    } catch (error) {
+      setRemoteError(error instanceof Error ? error.message : String(error));
+      setRemoteOnline(false);
+    } finally {
+      setRemoteLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    void refreshRemoteLibrary();
+    const timer = setInterval(() => void refreshRemoteLibrary(), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleRemoteAudioAction = async (action: RemoteAudioAction, trackId?: string) => {
+    setRemoteActionBusy(true);
+    setRemoteError(null);
+    try {
+      await onRemoteAudioCommand(action, trackId);
+      setRemoteError(`Perintah ${action === 'play' ? 'putar' : action === 'pause' ? 'jeda' : 'berhenti'} terkirim ke Ruang TU.`);
+    } catch (error) {
+      setRemoteError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRemoteActionBusy(false);
+    }
+  };
 
   const handleYtDownload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +188,97 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
           </p>
         </div>
       </div>
+
+      {!isTauri() && (
+        <section className="flex flex-col gap-3 rounded-2xl border border-primary/20 bg-primary-fixed/20 p-space-lg">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/10 pb-3">
+            <div className="flex items-start gap-2">
+              <Radio className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <h2 className="font-headline text-base font-bold text-primary">Putar ke Speaker Ruang TU</h2>
+                <p className="text-xs text-on-surface-variant">
+                  Pilih lagu dari pustaka komputer TU. File tetap diputar di komputer TU; browser ini hanya mengirim kontrol.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                remoteOnline ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
+              }`}>
+                {remoteOnline ? 'Receiver TU online' : 'Receiver TU offline'}
+              </span>
+              <button
+                type="button"
+                onClick={() => void refreshRemoteLibrary()}
+                disabled={remoteLoading}
+                className="rounded-lg border border-outline-variant/50 px-3 py-1.5 text-xs font-semibold text-on-surface hover:bg-white disabled:opacity-50"
+              >
+                {remoteLoading ? 'Memuat...' : 'Segarkan pustaka'}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void handleRemoteAudioAction('pause')}
+              disabled={!remoteOnline || remoteActionBusy}
+              className="rounded-lg border border-outline-variant/50 bg-white px-3 py-2 text-xs font-bold text-on-surface hover:border-primary disabled:opacity-50"
+            >
+              Jeda di TU
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRemoteAudioAction('stop')}
+              disabled={!remoteOnline || remoteActionBusy}
+              className="rounded-lg border border-error/30 bg-white px-3 py-2 text-xs font-bold text-error hover:bg-error-container disabled:opacity-50"
+            >
+              Berhenti di TU
+            </button>
+          </div>
+
+          {remoteError && (
+            <p role="status" className={`rounded-lg px-3 py-2 text-xs ${
+              remoteError.startsWith('Perintah ')
+                ? 'bg-primary-fixed text-on-primary-fixed'
+                : 'bg-error-container text-on-error-container'
+            }`}>
+              {remoteError}
+            </p>
+          )}
+
+          {!remoteOnline ? (
+            <p className="text-xs text-on-surface-variant">
+              Aktifkan <strong>Penerima Pengumuman Remote</strong> di komputer TU, pastikan online, lalu segarkan pustaka.
+            </p>
+          ) : remoteTracks.length === 0 ? (
+            <p className="text-xs text-on-surface-variant">Pustaka audio komputer TU masih kosong.</p>
+          ) : (
+            <ul className="max-h-72 divide-y divide-primary/10 overflow-y-auto rounded-xl border border-primary/10 bg-white">
+              {remoteTracks.map((track) => (
+                <li key={track.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-on-surface">{track.title}</p>
+                    <p className="text-[11px] text-on-surface-variant">
+                      {track.category} · {track.duration}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleRemoteAudioAction('play', track.id)}
+                    disabled={remoteActionBusy}
+                    aria-label={`Putar ${track.title} di Ruang TU`}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-on-primary hover:bg-primary-container disabled:opacity-50"
+                  >
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    Putar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {/* Multi-Source Importer Dual Box */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">

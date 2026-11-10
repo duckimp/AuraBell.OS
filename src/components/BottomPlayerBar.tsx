@@ -19,8 +19,10 @@ interface BottomPlayerBarProps {
   isPlaying: boolean;
   onTogglePlay: () => void;
   onPlaybackChange: (playing: boolean) => void;
+  onPlaybackResult: (trackId: string, error?: string) => void;
   volume: number;
   duckPercent: number;
+  stopSequence: number;
   onVolumeChange: (vol: number) => void;
 }
 
@@ -29,8 +31,10 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
   isPlaying,
   onTogglePlay,
   onPlaybackChange,
+  onPlaybackResult,
   volume,
   duckPercent,
+  stopSequence,
   onVolumeChange,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -81,8 +85,10 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
       } catch (error) {
         if (!active) return;
         console.error(`Gagal memutar audio "${currentTrack.title}"`, error);
-        setPlaybackError(error instanceof Error ? error.message : 'File audio tidak dapat diputar.');
+        const message = error instanceof Error ? error.message : 'File audio tidak dapat diputar.';
+        setPlaybackError(message);
         onPlaybackChange(false);
+        onPlaybackResult(currentTrack.id, message);
       }
     };
     void loadTrack();
@@ -95,7 +101,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       if (objectUrlRef.current === objectUrl) objectUrlRef.current = null;
     };
-  }, [currentTrack]);
+  }, [currentTrack, onPlaybackChange, onPlaybackResult]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -106,19 +112,32 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
     if (isPlaying) {
       void audio.play().catch((error: unknown) => {
         console.error(`Gagal memutar audio "${currentTrack.title}"`, error);
-        setPlaybackError('File audio tidak dapat diputar.');
+        const message = error instanceof Error
+          ? error.message
+          : 'File audio tidak dapat diputar.';
+        setPlaybackError(message);
         onPlaybackChange(false);
+        onPlaybackResult(currentTrack.id, message);
       });
     } else {
       audio.pause();
     }
-  }, [currentTrack, loadedTrackId, isPlaying, isLooping, volume, duckPercent, onPlaybackChange]);
+  }, [currentTrack, loadedTrackId, isPlaying, isLooping, volume, duckPercent, onPlaybackChange, onPlaybackResult]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = (volume / 100) * (duckPercent / 100);
     }
   }, [volume, duckPercent]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    setProgressSec(0);
+    onPlaybackChange(false);
+  }, [stopSequence, onPlaybackChange]);
 
   const formatSec = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -223,6 +242,9 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
 
       <audio
         ref={audioRef}
+        onPlaying={() => {
+          if (currentTrack) onPlaybackResult(currentTrack.id);
+        }}
         onTimeUpdate={(event) => setProgressSec(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDurationSec(event.currentTarget.duration || currentTrack?.duration_seconds || 0)}
         onEnded={() => onPlaybackChange(false)}
@@ -230,6 +252,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
           if (currentTrack) {
             console.error(`File audio tidak dapat dibuka: ${currentTrack.file_path}`);
             setPlaybackError('File audio tidak ditemukan atau format tidak didukung.');
+            onPlaybackResult(currentTrack.id, 'File audio tidak ditemukan atau format tidak didukung.');
           }
           onPlaybackChange(false);
         }}

@@ -88,6 +88,16 @@ Prepare a Vercel-hosted PWA and Supabase authentication/remote-announcement path
 7. Test local scheduled WAV playback with internet disconnected to confirm the offline bell requirement.
 8. Revisit authorization boundaries if multiple schools, roles, or speaker nodes are introduced. Current remote command functions allow any authenticated user in this single-school project to send to the fixed node.
 
+## Remote music controls — 2026-11-10
+
+- Added a Supabase-backed metadata catalog for the TU receiver's local playlist and remote play, pause, and stop commands. Audio files and local paths are never uploaded.
+- Added the browser Senam & Audio controls to browse the receiver catalog, play a selected track, pause, and stop. The receiver verifies the track still exists in its local playlist.
+- The receiver reports play success only after the audio element starts playback; loading, playback, and autoplay failures complete the command as failed. Pending playback is bounded by a 15-second timeout and canceled if superseded by another remote command.
+- Fixed the `deactivate_remote_audio_library` migration body and documented the required migration order in README.
+- Simplified the mobile bottom navigation to Dashboard, Panggilan Suara/Pengumuman, Senam & Audio, and Keluar; desktop navigation remains unchanged.
+- Validation: `npm run build` and `git diff --check` passed. The user has applied the new Supabase migration; no end-to-end remote playback test has been run.
+- Next: enable the receiver on the TU computer, then test catalog refresh, play/pause/stop, deleted-track rejection, bell priority, and receiver-offline behavior.
+
 ### Worktree and portability
 
 At the time this note was written, the implementation files were modified/untracked on branch `main` and had not been committed or pushed. `.env.local` is local-only and ignored. To continue from another device, commit and push the source changes plus this handoff file; then clone/pull the repository and recreate environment configuration locally from `.env.example` without copying secrets into Git.

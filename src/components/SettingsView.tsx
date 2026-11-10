@@ -360,7 +360,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
         <p className="rounded-xl bg-surface-container-low p-3 text-xs text-on-surface-variant">
-          Perangkat tujuan: <strong>ruang-tu</strong>. Browser/PWA dapat memakai voice browser yang tersedia—gunakan Chrome di komputer TU bila Google Bahasa Indonesia terdeteksi. Halaman/browser harus tetap terbuka. Jika Tauri dan browser sama-sama aktif sebagai receiver, salah satunya akan menerima tiap perintah.
+          Perangkat tujuan: <strong>ruang-tu</strong>. Receiver ini menerima pengumuman suara dan kontrol pemutar audio dari pustaka lokal. Guru dapat mengirim perintah putar/jeda/berhenti, tetapi file lagu tidak diunggah. Browser/PWA dapat memakai voice browser yang tersedia—gunakan Chrome di komputer TU bila Google Bahasa Indonesia terdeteksi. Halaman/browser harus tetap terbuka. Jika Tauri dan browser sama-sama aktif sebagai receiver, salah satunya akan menerima tiap perintah.
         </p>
         <p role="status" className={`text-xs font-semibold ${
           remoteReceiverStatus === 'connected'

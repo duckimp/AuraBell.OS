@@ -22,8 +22,15 @@ import { supabase } from './services/supabase';
 import {
   claimRemoteAnnouncement,
   completeRemoteAnnouncement,
+  claimRemoteAudioCommand,
+  completeRemoteAudioCommand,
+  deactivateRemoteAudioLibrary,
+  publishRemoteAudioLibrary,
   REMOTE_RECEIVER_STORAGE_KEY,
   RemoteReceiverStatus,
+  RemoteAudioAction,
+  sendRemoteAudioCommand,
+  subscribeToRemoteAudioCommands,
   subscribeToRemoteAnnouncements,
 } from './services/remoteAnnouncements';
 
@@ -63,6 +70,13 @@ export function App({ onSignOut }: AppProps) {
   const activeHistoryIdRef = useRef<string | null>(null);
   const testHistoryIdRef = useRef<string | null>(null);
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteLibraryPublishedRef = useRef(false);
+  const pendingRemotePlaybackRef = useRef<{
+    commandId: string;
+    trackId: string;
+    timeout: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const remoteAudioCommandQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   // Add / Edit Schedule Modal state
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
@@ -71,10 +85,27 @@ export function App({ onSignOut }: AppProps) {
   // Media Player state
   const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+  const [playerStopSequence, setPlayerStopSequence] = useState(0);
   const [masterVolume, setMasterVolume] = useState(85);
   const volumeSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appDataRef = useRef(appData);
   appDataRef.current = appData;
+  const currentTrackRef = useRef(currentTrack);
+  currentTrackRef.current = currentTrack;
+  const isPlayingMusicRef = useRef(isPlayingMusic);
+  isPlayingMusicRef.current = isPlayingMusic;
+  const handleRemotePlaybackResult = useCallback((trackId: string, failureMessage?: string) => {
+    const pending = pendingRemotePlaybackRef.current;
+    if (!pending || pending.trackId !== trackId) return;
+    clearTimeout(pending.timeout);
+    pendingRemotePlaybackRef.current = null;
+    void completeRemoteAudioCommand(pending.commandId, failureMessage).catch((error: unknown) => {
+      console.error('Gagal memperbarui status perintah audio remote:', error);
+    });
+    if (failureMessage) {
+      console.error(`Pemutaran audio remote gagal: ${failureMessage}`);
+    }
+  }, []);
 
   const updateBellHistoryStatus = useCallback((id: string, status: BellHistoryRecord['status']) => {
     const current = appDataRef.current;
@@ -337,6 +368,127 @@ export function App({ onSignOut }: AppProps) {
     };
   }, [remoteReceiverEnabled, ttsVoiceGender]);
 
+  useEffect(() => {
+    if (!remoteReceiverEnabled || !supabase || !appData) {
+      if (!remoteReceiverEnabled && remoteLibraryPublishedRef.current) {
+        remoteLibraryPublishedRef.current = false;
+        void deactivateRemoteAudioLibrary().catch((error: unknown) => {
+          console.error('Gagal menonaktifkan pustaka audio remote:', error);
+        });
+      }
+      return;
+    }
+
+    const publishLibrary = () => {
+      const tracks = appData.playlist.map((track) => ({
+        id: track.id,
+        title: track.title,
+        category: track.category,
+        duration: track.duration,
+      }));
+      void publishRemoteAudioLibrary(tracks).then(() => {
+        remoteLibraryPublishedRef.current = true;
+      }).catch((error: unknown) => {
+        console.error('Gagal memperbarui pustaka audio komputer receiver:', error);
+      });
+    };
+
+    publishLibrary();
+    const heartbeat = setInterval(publishLibrary, 30000);
+    return () => clearInterval(heartbeat);
+  }, [remoteReceiverEnabled, appData?.playlist]);
+
+  useEffect(() => {
+    if (!remoteReceiverEnabled || !supabase) return;
+    let active = true;
+    const unsubscribe = subscribeToRemoteAudioCommands((commandId) => {
+      remoteAudioCommandQueueRef.current = remoteAudioCommandQueueRef.current
+        .then(async () => {
+          try {
+            if (!active) return;
+            const command = await claimRemoteAudioCommand(commandId);
+            if (!command) return;
+            if (!active) {
+              await completeRemoteAudioCommand(
+                command.id,
+                'Penerima audio dinonaktifkan sebelum perintah dijalankan.'
+              );
+              return;
+            }
+
+            if (pendingRemotePlaybackRef.current) {
+              const pending = pendingRemotePlaybackRef.current;
+              clearTimeout(pending.timeout);
+              pendingRemotePlaybackRef.current = null;
+              await completeRemoteAudioCommand(
+                pending.commandId,
+                'Pemutaran dibatalkan oleh perintah audio berikutnya.'
+              );
+            }
+
+            let failureMessage: string | undefined;
+            if (command.action === 'play') {
+              if (isBellPlaybackActive) {
+                failureMessage = 'Musik tidak diputar karena bel sedang berbunyi.';
+              } else {
+                const track = appDataRef.current?.playlist.find((candidate) =>
+                  candidate.id === command.track_id
+                );
+                if (!track) {
+                  failureMessage = 'Lagu tidak ditemukan di pustaka lokal komputer tujuan.';
+                } else if (currentTrackRef.current?.id === track.id && isPlayingMusicRef.current) {
+                  await completeRemoteAudioCommand(command.id);
+                  return;
+                } else {
+                  const timeout = setTimeout(() => {
+                    if (pendingRemotePlaybackRef.current?.commandId === command.id) {
+                      handleRemotePlaybackResult(
+                        track.id,
+                        'Pemutaran tidak dimulai; periksa output audio atau izin autoplay di komputer TU.'
+                      );
+                    }
+                  }, 15000);
+                  pendingRemotePlaybackRef.current = {
+                    commandId: command.id,
+                    trackId: track.id,
+                    timeout,
+                  };
+                  setCurrentTrack(track);
+                  setIsPlayingMusic(true);
+                  return;
+                }
+              }
+            } else if (command.action === 'pause') {
+              setIsPlayingMusic(false);
+            } else {
+              setIsPlayingMusic(false);
+              setPlayerStopSequence((sequence) => sequence + 1);
+            }
+
+            await completeRemoteAudioCommand(command.id, failureMessage);
+            if (failureMessage) {
+              console.error(`Perintah audio remote gagal: ${failureMessage}`);
+            }
+          } catch (error) {
+            console.error('Gagal menjalankan perintah audio remote:', error);
+          }
+        })
+        .catch((error: unknown) => {
+          console.error('Antrean perintah audio remote gagal:', error);
+        });
+    }, (message) => {
+      console.error(message);
+      if (active) setRemoteReceiverStatus('error');
+    }, (status) => {
+      if (active) setRemoteReceiverStatus(status);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [isBellPlaybackActive, remoteReceiverEnabled]);
+
   // Bell actions
   const handleTriggerBell = useCallback(
     (title: string, audioFile: string, category = 'reguler', isEmergency = false) => {
@@ -429,6 +581,14 @@ export function App({ onSignOut }: AppProps) {
       }
       setActiveBell(null);
     }
+  };
+
+  const handleRemoteAudioCommand = async (action: RemoteAudioAction, trackId?: string) => {
+    const currentBell = activeBell;
+    if (action === 'play' && currentBell) {
+      throw new Error('Audio tidak dapat diputar remote selama bel sedang aktif.');
+    }
+    await sendRemoteAudioCommand(action, trackId);
   };
 
   const handleStopBell = useCallback(() => {
@@ -917,6 +1077,7 @@ export function App({ onSignOut }: AppProps) {
                 onImportYouTube={handleImportYouTube}
                 onImportLocal={handleImportLocal}
                 onAddToSchedule={handleAddTrackToSchedule}
+                onRemoteAudioCommand={handleRemoteAudioCommand}
               />
             )}
 
@@ -949,8 +1110,10 @@ export function App({ onSignOut }: AppProps) {
         isPlaying={isPlayingMusic}
         onTogglePlay={handleTogglePlayMusic}
         onPlaybackChange={handlePlaybackChange}
+        onPlaybackResult={handleRemotePlaybackResult}
         volume={masterVolume}
         duckPercent={isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
+        stopSequence={playerStopSequence}
         onVolumeChange={handleVolumeChange}
       />
 

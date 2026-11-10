@@ -28,31 +28,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
+      mobileVisible: true,
     },
     {
       id: 'jadwal',
       label: 'Jadwal Bel',
       icon: Bell,
+      mobileVisible: false,
     },
     {
       id: 'tts',
       label: 'Panggilan Suara',
       icon: Mic2,
+      mobileVisible: true,
     },
     {
       id: 'senam',
       label: 'Senam & Audio',
       icon: Music2,
+      mobileVisible: true,
     },
     {
       id: 'khusus',
       label: 'Jadwal Khusus',
       icon: CalendarDays,
+      mobileVisible: false,
     },
     {
       id: 'pengaturan',
       label: 'Pengaturan Sekolah',
       icon: Settings,
+      mobileVisible: false,
     },
   ];
 
@@ -107,7 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   isActive
                     ? 'bg-primary-container text-on-primary shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                } max-[1100px]:w-12 max-[1100px]:justify-center max-[1100px]:px-1 max-[700px]:h-12 max-[700px]:w-12 max-[700px]:flex-1 max-[700px]:rounded-lg max-[700px]:px-0`}
+                } max-[1100px]:w-12 max-[1100px]:justify-center max-[1100px]:px-1 max-[700px]:h-12 max-[700px]:w-12 max-[700px]:flex-1 max-[700px]:rounded-lg max-[700px]:px-0 ${
+                  item.mobileVisible ? '' : 'max-[700px]:hidden'
+                }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   isActive
