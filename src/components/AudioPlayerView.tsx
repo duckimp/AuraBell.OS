@@ -300,6 +300,11 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
                   {localImportError}
                 </p>
               )}
+              {!isTauri() && (
+                <p className="text-[11px] text-on-surface-variant">
+                  File disimpan di IndexedDB browser ini dan tetap tersedia setelah refresh. File tidak tersinkron ke perangkat lain atau Supabase; menghapus data situs browser dapat menghapusnya.
+                </p>
+              )}
             </div>
           </div>
         </div>

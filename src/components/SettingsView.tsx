@@ -287,7 +287,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <p className="rounded-xl bg-surface-container-low p-3 text-sm text-on-surface-variant">
           {isTauri()
             ? 'Backup desktop berupa file ZIP yang menyertakan audio lokal. Restore akan mengganti data saat ini.'
-            : 'Backup browser berupa JSON dan tidak menyertakan berkas audio. Untuk memindahkan audio, gunakan aplikasi desktop AuraBell.OS.'}
+            : 'Backup browser berupa JSON dan tidak menyertakan berkas audio IndexedDB. Audio tetap ada setelah refresh di browser/origin yang sama, tetapi tidak tersinkron antarperangkat; menghapus data situs dapat menghapusnya.'}
         </p>
         {status && (
           <p

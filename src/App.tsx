@@ -16,6 +16,7 @@ import {
 } from './types';
 import { isTauri, tauriBridge } from './services/tauriBridge';
 import { audioEngine, TtsEngine, VoiceGender } from './services/audioEngine';
+import { deleteBrowserAudio, getBrowserAudioId } from './services/browserAudioStore';
 import { supabase } from './services/supabase';
 import {
   claimRemoteAnnouncement,
@@ -48,6 +49,8 @@ const SettingsView = lazy(() =>
   import('./components/SettingsView').then(({ SettingsView }) => ({ default: SettingsView }))
 );
 
+const BROWSER_BELL_ENABLED_KEY = 'aurabell_browser_bell_enabled';
+
 export function App({ onSignOut }: AppProps) {
   const [appData, setAppData] = useState<AppData | null>(null);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -69,6 +72,9 @@ export function App({ onSignOut }: AppProps) {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [remoteReceiverEnabled, setRemoteReceiverEnabled] = useState(false);
   const [remoteReceiverStatus, setRemoteReceiverStatus] = useState<RemoteReceiverStatus>('disabled');
+  const [browserBellEnabled, setBrowserBellEnabled] = useState(
+    () => typeof window !== 'undefined' && localStorage.getItem(BROWSER_BELL_ENABLED_KEY) === 'true'
+  );
   const [ttsVoiceGender, setTtsVoiceGender] = useState<VoiceGender>(() =>
     typeof window !== 'undefined' && localStorage.getItem('aurabell_tts_voice') === 'male'
       ? 'male'
@@ -219,12 +225,24 @@ export function App({ onSignOut }: AppProps) {
   // Bell actions
   const handleTriggerBell = useCallback(
     (title: string, audioFile: string, category = 'reguler', isEmergency = false) => {
+      if (!isTauri() && !browserBellEnabled) return;
       void tauriBridge.triggerBell(title, audioFile, category, isEmergency).catch((error: unknown) => {
         console.error('Gagal membunyikan bel:', error);
       });
     },
-    []
+    [browserBellEnabled]
   );
+
+  const handleToggleBrowserBell = () => {
+    const enabled = !browserBellEnabled;
+    localStorage.setItem(BROWSER_BELL_ENABLED_KEY, String(enabled));
+    setBrowserBellEnabled(enabled);
+    if (!enabled) {
+      audioEngine.stopBellAudio();
+      audioEngine.stopEmergencySiren();
+      setActiveBell(null);
+    }
+  };
 
   const handleStopBell = useCallback(() => {
     setActiveBell(null);
@@ -464,10 +482,20 @@ export function App({ onSignOut }: AppProps) {
     if (confirm('Hapus media ini dari playlist?')) {
       const deletedTrack = appData.playlist.find((track) => track.id === id);
       if (deletedTrack?.file_path.startsWith('blob:')) URL.revokeObjectURL(deletedTrack.file_path);
+      const browserAudioId = deletedTrack ? getBrowserAudioId(deletedTrack.file_path) : null;
+      if (browserAudioId) {
+        void deleteBrowserAudio(browserAudioId).catch((error: unknown) => {
+          console.error('Gagal menghapus file audio browser:', error);
+          alert(`File dihapus dari playlist, tetapi file lokal gagal dihapus: ${String(error)}`);
+        });
+      }
       const updatedPlaylist = appData.playlist.filter((t) => t.id !== id);
       const updated = { ...appData, playlist: updatedPlaylist };
       setAppData(updated);
-      tauriBridge.saveAppData(updated);
+      void tauriBridge.saveAppData(updated).catch((error: unknown) => {
+        console.error('Gagal menyimpan playlist setelah menghapus audio:', error);
+        alert(`Gagal menyimpan playlist: ${String(error)}`);
+      });
       if (currentTrack?.id === id) {
         setCurrentTrack(updatedPlaylist[0] || null);
         setIsPlayingMusic(false);
@@ -483,6 +511,7 @@ export function App({ onSignOut }: AppProps) {
         playlist: [newTrack, ...appData.playlist],
       };
       setAppData(updated);
+      await tauriBridge.saveAppData(updated);
     }
     setCurrentTrack(newTrack);
   };
@@ -500,6 +529,7 @@ export function App({ onSignOut }: AppProps) {
         playlist: [newTrack, ...appData.playlist],
       };
       setAppData(updated);
+      await tauriBridge.saveAppData(updated);
     }
     setCurrentTrack(newTrack);
     return newTrack;
@@ -513,7 +543,9 @@ export function App({ onSignOut }: AppProps) {
       'Nada Bel'
     );
     if (appData) {
-      setAppData({ ...appData, playlist: [track, ...appData.playlist] });
+      const updated = { ...appData, playlist: [track, ...appData.playlist] };
+      setAppData(updated);
+      await tauriBridge.saveAppData(updated);
     }
     return track;
   };
@@ -576,7 +608,10 @@ export function App({ onSignOut }: AppProps) {
           schoolName={appData.settings.school_name}
           autoBellEnabled={appData.settings.auto_bell_enabled}
           activeMode={appData.settings.active_mode}
+          isDesktop={isTauri()}
+          browserBellEnabled={browserBellEnabled}
           onToggleAutoBell={handleToggleAutoBell}
+          onToggleBrowserBell={handleToggleBrowserBell}
           onEmergencyTrigger={handleEmergencyTrigger}
         />
 
@@ -592,6 +627,7 @@ export function App({ onSignOut }: AppProps) {
             {currentTab === 'dashboard' && (
               <DashboardView
                 appData={appData}
+                canPlayBell={isTauri() || browserBellEnabled}
                 onTriggerBell={handleTriggerBell}
                 onSendTts={handleSendTts}
                 onSelectTrack={handleSelectTrack}
@@ -607,6 +643,7 @@ export function App({ onSignOut }: AppProps) {
             {currentTab === 'jadwal' && (
               <ScheduleView
                 appData={appData}
+                canPlayBell={isTauri() || browserBellEnabled}
                 onUpdateSchedules={handleUpdateSchedules}
                 onSetActiveMode={handleSetActiveMode}
                 onOpenAddModal={handleOpenAddModal}

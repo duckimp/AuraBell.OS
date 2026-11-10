@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Bell,
   Power,
 } from 'lucide-react';
 
@@ -11,7 +12,10 @@ interface HeaderProps {
   schoolName: string;
   autoBellEnabled: boolean;
   activeMode: string;
+  isDesktop: boolean;
+  browserBellEnabled: boolean;
   onToggleAutoBell: () => void;
+  onToggleBrowserBell: () => void;
   onEmergencyTrigger: () => void;
 }
 
@@ -23,7 +27,10 @@ export const Header: React.FC<HeaderProps> = ({
   schoolName,
   autoBellEnabled,
   activeMode,
+  isDesktop,
+  browserBellEnabled,
   onToggleAutoBell,
+  onToggleBrowserBell,
   onEmergencyTrigger,
 }) => {
   const [timeStr, setTimeStr] = useState('');
@@ -53,34 +60,51 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-xs text-on-surface-variant">{academicYear}</span>
         </div>
 
-        {/* Auto Bell Status Toggle */}
-        <button
-          onClick={onToggleAutoBell}
-          title="Klik untuk mengaktifkan/menonaktifkan penjadwalan otomatis"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer border ${
-            autoBellEnabled
-              ? 'bg-primary/8 border-primary/20 text-primary hover:bg-primary/12'
-              : 'bg-error-container/60 border-error/20 text-error hover:bg-error-container'
-          }`}
-        >
-          {autoBellEnabled ? (
-            <>
-              <span className="relative flex w-2 h-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
-              </span>
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="max-[1100px]:hidden">Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
-              <span className="hidden max-[1100px]:inline">Otomatis</span>
-            </>
-          ) : (
-            <>
-              <Power className="w-3.5 h-3.5" />
-              <span className="max-[1100px]:hidden">Bel otomatis mati</span>
-              <span className="hidden max-[1100px]:inline">Mati</span>
-            </>
-          )}
-        </button>
+        {isDesktop ? (
+          <button
+            onClick={onToggleAutoBell}
+            title="Klik untuk mengaktifkan/menonaktifkan penjadwalan otomatis"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer border ${
+              autoBellEnabled
+                ? 'bg-primary/8 border-primary/20 text-primary hover:bg-primary/12'
+                : 'bg-error-container/60 border-error/20 text-error hover:bg-error-container'
+            }`}
+          >
+            {autoBellEnabled ? (
+              <>
+                <span className="relative flex w-2 h-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
+                </span>
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="max-[1100px]:hidden">Bel otomatis · {activeMode === 'reguler' ? 'Reguler' : activeMode === 'ujian' ? 'Ujian' : 'Ramadan'}</span>
+                <span className="hidden max-[1100px]:inline">Otomatis</span>
+              </>
+            ) : (
+              <>
+                <Power className="w-3.5 h-3.5" />
+                <span className="max-[1100px]:hidden">Bel otomatis mati</span>
+                <span className="hidden max-[1100px]:inline">Mati</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={browserBellEnabled}
+            onClick={onToggleBrowserBell}
+            title={browserBellEnabled ? 'Nonaktifkan semua bunyi bel di browser' : 'Aktifkan bunyi bel di browser'}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+              browserBellEnabled
+                ? 'border-error/30 bg-error-container/60 text-error hover:bg-error-container'
+                : 'border-primary/20 bg-primary/8 text-primary hover:bg-primary/12'
+            }`}
+          >
+            <Bell className="h-4 w-4" />
+            <span>{browserBellEnabled ? 'Bel browser aktif' : 'Bel browser nonaktif'}</span>
+          </button>
+        )}
       </div>
 
       {/* Right Controls */}
@@ -95,16 +119,17 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-xs text-on-surface-variant font-medium">{dateStr}</span>
         </div>
 
-        {/* Emergency Button */}
-        <button
-          onClick={onEmergencyTrigger}
-          title="Darurat: Bunyikan Bel"
-          className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95"
-          type="button"
-        >
-          <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-          <span className="max-[1100px]:hidden">Darurat: Bunyikan Bel</span>
-        </button>
+        {(isDesktop || browserBellEnabled) && (
+          <button
+            onClick={onEmergencyTrigger}
+            title="Darurat: Bunyikan Bel"
+            className="flex items-center gap-2 bg-error text-on-error hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-all duration-150 cursor-pointer active:scale-95"
+            type="button"
+          >
+            <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
+            <span className="max-[1100px]:hidden">Darurat: Bunyikan Bel</span>
+          </button>
+        )}
 
       </div>
     </header>

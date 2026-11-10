@@ -1,4 +1,5 @@
 import { AppData, AudioTrack, BellTriggerPayload, ScheduleCategory, TtsCallRecord } from '../types';
+import { BROWSER_AUDIO_PATH_PREFIX, saveBrowserAudio } from './browserAudioStore';
 
 // Detect whether running inside Tauri desktop app
 export const isTauri = (): boolean => {
@@ -403,18 +404,24 @@ export const tauriBridge = {
       }
     }
 
-    const isTemporaryBrowserFile = source instanceof File;
+    const isBrowserFile = source instanceof File;
+    const id = `local-${typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Date.now().toString()}`;
+    if (isBrowserFile) {
+      await saveBrowserAudio(id, source);
+    }
     const newTrack: AudioTrack = {
-      id: `local-${Date.now()}`,
+      id,
       title: title || 'Audio Sekolah Baru',
       duration: '04:15',
       duration_seconds: 255,
       category,
       source: 'local',
-      file_path: isTemporaryBrowserFile ? URL.createObjectURL(source) : source,
+      file_path: isBrowserFile ? `${BROWSER_AUDIO_PATH_PREFIX}${id}` : source,
       date_added: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
     };
-    if (!isTemporaryBrowserFile) {
+    if (!isBrowserFile) {
       const data = await this.fetchAppData();
       data.playlist.unshift(newTrack);
       await this.saveAppData(data);

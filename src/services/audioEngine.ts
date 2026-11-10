@@ -1,6 +1,7 @@
 // Audio Engine: Web Audio bells, offline Piper TTS, and browser Web Speech fallback
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { isTauri } from './tauriBridge';
+import { getBrowserAudioId, getBrowserAudioUrl } from './browserAudioStore';
 
 export type VoiceGender = 'female' | 'male';
 export type TtsEngine = 'system' | 'piper';
@@ -39,6 +40,7 @@ class AudioEngine {
   private emergencyGain: GainNode | null = null;
   private currentVolume = 0.85;
   private currentBellAudio: HTMLAudioElement | null = null;
+  private currentBellObjectUrl: string | null = null;
   private currentSpeechSource: AudioBufferSourceNode | null = null;
   private currentSpeechGain: GainNode | null = null;
   private currentSpeechVolume = 1;
@@ -246,22 +248,46 @@ class AudioEngine {
 
   // Play a stored audio file when available, otherwise use the built-in bell tone.
   public playSoundFile(filename: string, onFinish?: () => void) {
-    if (this.isPlayableFilePath(filename)) {
+    const browserAudioId = getBrowserAudioId(filename);
+    if (browserAudioId || this.isPlayableFilePath(filename)) {
       this.stopBellAudio();
-      const audio = new Audio(this.resolveAudioSource(filename));
-      audio.volume = this.currentVolume;
-      audio.onended = () => {
-        if (this.currentBellAudio === audio) this.currentBellAudio = null;
-        onFinish?.();
-      };
-      audio.onerror = () => {
-        console.error(`Gagal memutar file audio: ${filename}`);
-        if (this.currentBellAudio === audio) this.currentBellAudio = null;
-      };
+      const audio = new Audio();
       this.currentBellAudio = audio;
-      void audio.play().catch((error: unknown) => {
-        console.error(`Gagal memutar file audio: ${filename}`, error);
-      });
+      const play = async () => {
+        try {
+          const source = browserAudioId
+            ? await getBrowserAudioUrl(browserAudioId)
+            : this.resolveAudioSource(filename);
+          if (this.currentBellAudio !== audio) {
+            if (browserAudioId) URL.revokeObjectURL(source);
+            return;
+          }
+          if (browserAudioId) this.currentBellObjectUrl = source;
+          audio.src = source;
+          audio.volume = this.currentVolume;
+          audio.onended = () => {
+            if (this.currentBellAudio === audio) this.currentBellAudio = null;
+            if (browserAudioId) {
+              URL.revokeObjectURL(source);
+              if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
+            }
+            onFinish?.();
+          };
+          audio.onerror = () => {
+            console.error(`Gagal memutar file audio: ${filename}`);
+            if (this.currentBellAudio === audio) this.currentBellAudio = null;
+            if (browserAudioId) {
+              URL.revokeObjectURL(source);
+              if (this.currentBellObjectUrl === source) this.currentBellObjectUrl = null;
+            }
+          };
+          await audio.play();
+        } catch (error) {
+          console.error(`Gagal memutar file audio: ${filename}`, error);
+          if (this.currentBellAudio === audio) this.currentBellAudio = null;
+        }
+      };
+      void play();
       return;
     }
 
@@ -282,6 +308,10 @@ class AudioEngine {
       this.currentBellAudio.currentTime = 0;
       this.currentBellAudio.src = '';
       this.currentBellAudio = null;
+    }
+    if (this.currentBellObjectUrl) {
+      URL.revokeObjectURL(this.currentBellObjectUrl);
+      this.currentBellObjectUrl = null;
     }
     for (const oscillator of this.bellOscillators) {
       oscillator.stop();

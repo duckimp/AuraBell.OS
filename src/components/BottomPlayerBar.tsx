@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { AudioTrack } from '../types';
 import { isTauri } from '../services/tauriBridge';
+import { getBrowserAudioId, getBrowserAudioUrl } from '../services/browserAudioStore';
 
 interface BottomPlayerBarProps {
   currentTrack: AudioTrack | null;
@@ -36,33 +37,70 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
   const [isLooping, setIsLooping] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [loadedTrackId, setLoadedTrackId] = useState<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    setLoadedTrackId(null);
+    setPlaybackError(null);
     if (!currentTrack) {
       audio.pause();
       audio.removeAttribute('src');
+      audio.load();
       setProgressSec(0);
       setDurationSec(0);
       setPlaybackError(null);
       return;
     }
 
-    setPlaybackError(null);
-    const path = currentTrack.file_path;
-    const source = isTauri() && (path.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(path))
-      ? convertFileSrc(path)
-      : path;
+    let active = true;
+    let objectUrl: string | null = null;
+    const loadTrack = async () => {
+      try {
+        const path = currentTrack.file_path;
+        const browserAudioId = getBrowserAudioId(path);
+        const source = browserAudioId
+          ? await getBrowserAudioUrl(browserAudioId)
+          : isTauri() && (path.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(path))
+            ? convertFileSrc(path)
+            : path;
+        if (!active) {
+          if (browserAudioId) URL.revokeObjectURL(source);
+          return;
+        }
+        if (browserAudioId) objectUrl = source;
+        audio.src = source;
+        audio.load();
+        objectUrlRef.current = objectUrl;
+        setLoadedTrackId(currentTrack.id);
+      } catch (error) {
+        if (!active) return;
+        console.error(`Gagal memutar audio "${currentTrack.title}"`, error);
+        setPlaybackError(error instanceof Error ? error.message : 'File audio tidak dapat diputar.');
+        onPlaybackChange(false);
+      }
+    };
+    void loadTrack();
 
-    if (audio.getAttribute('src') !== source) {
-      audio.src = source;
+    return () => {
+      active = false;
+      audio.pause();
+      audio.removeAttribute('src');
       audio.load();
-    }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrlRef.current === objectUrl) objectUrlRef.current = null;
+    };
+  }, [currentTrack]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack || loadedTrackId !== currentTrack.id) return;
+
     audio.loop = isLooping;
     audio.volume = volume / 100;
-
     if (isPlaying) {
       void audio.play().catch((error: unknown) => {
         console.error(`Gagal memutar audio "${currentTrack.title}"`, error);
@@ -72,7 +110,7 @@ export const BottomPlayerBar: React.FC<BottomPlayerBarProps> = ({
     } else {
       audio.pause();
     }
-  }, [currentTrack, isPlaying, isLooping, volume, onPlaybackChange]);
+  }, [currentTrack, loadedTrackId, isPlaying, isLooping, volume, onPlaybackChange]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume / 100;

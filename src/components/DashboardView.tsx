@@ -20,6 +20,7 @@ import { isTauri } from '../services/tauriBridge';
 
 interface DashboardViewProps {
   appData: AppData;
+  canPlayBell: boolean;
   onTriggerBell: (title: string, audioFile: string, category?: string) => void;
   onSendTts: (
     targetType: TargetCategory,
@@ -39,6 +40,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   appData,
+  canPlayBell,
   onTriggerBell,
   onSendTts,
   onSelectTrack,
@@ -162,7 +164,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => onTriggerBell('Uji Coba Nada Westminster', 'westminster_chime.mp3')}
-            className="flex items-center gap-2 bg-white text-primary hover:bg-primary-fixed px-4 py-2.5 rounded-xl font-headline font-bold text-xs shadow-sm transition-all cursor-pointer active:scale-95"
+            disabled={!canPlayBell}
+            title={!canPlayBell ? 'Bunyi bel browser dinonaktifkan di navbar.' : undefined}
+            className="flex items-center gap-2 bg-white text-primary hover:bg-primary-fixed px-4 py-2.5 rounded-xl font-headline font-bold text-xs shadow-sm transition-all cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Bell className="w-4 h-4 text-primary" />
             <span>Tes Nada Bel (Westminster)</span>
@@ -588,8 +592,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <td className="py-3 px-3 text-right">
                       <button
                         onClick={() => onTriggerBell(item.title, item.audio_file, item.category)}
+                        disabled={!canPlayBell}
                         title="Bunyikan bel sesi ini secara manual"
-                        className="px-3 py-1 rounded-lg bg-surface-container hover:bg-primary hover:text-white transition-all text-xs font-semibold cursor-pointer"
+                        className="px-3 py-1 rounded-lg bg-surface-container hover:bg-primary hover:text-white transition-all text-xs font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Bunyikan
                       </button>

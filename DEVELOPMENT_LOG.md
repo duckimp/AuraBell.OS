@@ -2,6 +2,22 @@
 
 This is a rolling handoff for continuing AuraBell.OS work from another device. Update it after a substantial implementation or operational milestone. Do not put credentials, tokens, private URLs, or `.env.local` contents in this file.
 
+## Local browser audio update — 2026-11-10
+
+- Browser imports now save the actual audio `Blob` in IndexedDB and store a stable IndexedDB reference in the localStorage playlist metadata.
+- Browser player and manual bell playback resolve that stable reference to a temporary object URL only at playback time, so refresh no longer loses newly imported audio.
+- Deleting a playlist track also removes its IndexedDB file. Browser backup remains JSON-only and does not include audio blobs.
+- Audio is still local to one browser profile and origin; it is not synchronized to other devices or Supabase. Clearing site data can remove it.
+- Updated the UI and README to explain browser-local persistence and backup limitations.
+- Validation: `npm run build` passed. No end-to-end file-upload/reload test was run.
+
+## Browser bell safety update — 2026-11-10
+
+- Browser mode now has a navbar toggle to enable/disable local bell playback. It defaults to disabled and persists in that browser's localStorage.
+- When disabled, the app blocks manual bell playback and emergency bell actions in code, disables dashboard/schedule preview buttons, and stops any active browser bell when toggled off.
+- Desktop Tauri behavior remains unchanged. Remote announcement receiver remains separate and can still speak announcements in the browser.
+- Validation: `npm run build` passed.
+
 ## Latest session — 2026-11-10
 
 ### Goal

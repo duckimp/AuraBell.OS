@@ -16,6 +16,7 @@ import { audioEngine } from '../services/audioEngine';
 
 interface ScheduleViewProps {
   appData: AppData;
+  canPlayBell: boolean;
   onUpdateSchedules: (schedules: ScheduleItem[]) => void;
   onSetActiveMode: (mode: ScheduleCategory) => void;
   onOpenAddModal: (itemToEdit?: ScheduleItem) => void;
@@ -24,6 +25,7 @@ interface ScheduleViewProps {
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   appData,
+  canPlayBell,
   onUpdateSchedules,
   onSetActiveMode,
   onOpenAddModal,
@@ -250,8 +252,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                         </span>
                         <button
                           onClick={() => onTriggerBell(item.title, item.audio_file, item.category)}
+                          disabled={!canPlayBell}
                           title="Pratinjau Suara Bel"
-                          className="w-7 h-7 rounded-lg bg-surface-container hover:bg-primary hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                          className="w-7 h-7 rounded-lg bg-surface-container hover:bg-primary hover:text-white flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                         </button>
@@ -297,4 +300,3 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     </div>
   );
 };
-
