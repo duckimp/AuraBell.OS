@@ -63,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
   const visibleNavItems = navItems.filter((item) =>
-    isDesktop ? item.id !== 'tts' : item.id === 'tts'
+    isDesktop ? item.id !== 'tts' : item.id === 'tts' || item.id === 'senam'
   );
 
   const modeLabel: Record<string, { label: string; color: string }> = {

@@ -178,14 +178,16 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
               Manajemen Media Audio
             </span>
             <span className="text-on-surface-variant text-xs">
-              • Offline-Ready 100% Bebas Iklan
+              • {isTauri() ? 'Offline-Ready 100% Bebas Iklan' : 'Putar di perangkat ini'}
             </span>
           </div>
           <h1 className="font-headline font-extrabold text-2xl text-primary tracking-tight">
             Pustaka Lagu Senam, Upacara & Audio Sekolah
           </h1>
           <p className="text-on-surface-variant text-sm">
-            Tarik audio bersih tanpa jeda iklan dari YouTube atau unggah file lokal untuk pemutaran senam pagi sekolah.
+            {isTauri()
+              ? 'Tarik audio bersih tanpa jeda iklan dari YouTube atau unggah file lokal untuk pemutaran senam pagi sekolah.'
+              : 'Unggah lagu senam ke browser ini untuk diputar langsung di perangkat, atau kirim perintah ke komputer TU.'}
           </p>
         </div>
       </div>
@@ -282,9 +284,10 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
       )}
 
       {/* Multi-Source Importer Dual Box */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+      <div className={`grid grid-cols-1 gap-space-lg ${isTauri() ? 'md:grid-cols-2' : ''}`}>
         {/* YouTube Importer */}
-        <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm flex flex-col justify-between">
+        {isTauri() && (
+          <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-surface-container">
               <div className="flex items-center gap-2">
@@ -368,7 +371,8 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
               </button>
             </form>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Local File Importer */}
         <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm flex flex-col justify-between">
@@ -383,7 +387,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
                     Unggah File Audio Lokal
                   </h3>
                   <p className="text-[11px] text-on-surface-variant">
-                    Mendukung file .mp3, .wav, dan .m4a dari PC
+                    Mendukung file .mp3, .wav, dan .m4a dari {isTauri() ? 'PC' : 'perangkat ini'}
                   </p>
                 </div>
               </div>
@@ -419,7 +423,9 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
                 <FileAudio className="w-7 h-7 text-primary" />
                 <div className="text-center">
                   <span className="font-bold text-xs text-primary block">
-                    {isImportingLocal ? 'Mengimpor audio...' : 'Pilih File Audio dari Komputer'}
+                    {isImportingLocal
+                      ? 'Mengimpor audio...'
+                      : `Pilih File Audio dari ${isTauri() ? 'Komputer' : 'Perangkat Ini'}`}
                   </span>
                   <span className="text-[11px] text-on-surface-variant">
                     Format MP3, WAV, M4A, atau OGG
@@ -496,7 +502,9 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
               {filteredPlaylist.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-on-surface-variant">
-                    Belum ada lagu dalam kategori ini. Silakan unggah atau unduh dari YouTube.
+                    {isTauri()
+                      ? 'Belum ada lagu dalam kategori ini. Silakan unggah atau unduh dari YouTube.'
+                      : 'Belum ada lagu dalam kategori ini. Unggah file audio untuk mulai memutar lagu senam.'}
                   </td>
                 </tr>
               ) : (
@@ -535,9 +543,11 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
                             <span className="font-bold text-sm text-on-surface">
                               {track.title}
                             </span>
-                            <span className="text-[11px] text-on-surface-variant font-mono">
-                              {track.file_path}
-                            </span>
+                            {isTauri() && (
+                              <span className="text-[11px] text-on-surface-variant font-mono">
+                                {track.file_path}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -565,13 +575,15 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
                       </td>
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => onAddToSchedule(track)}
-                            className="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-primary hover:text-white transition-all text-xs font-semibold cursor-pointer"
-                            title="Jadikan nada pemicu jadwal bel"
-                          >
-                            + Jadikan Bel
-                          </button>
+                          {isTauri() && (
+                            <button
+                              onClick={() => onAddToSchedule(track)}
+                              className="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-primary hover:text-white transition-all text-xs font-semibold cursor-pointer"
+                              title="Jadikan nada pemicu jadwal bel"
+                            >
+                              + Jadikan Bel
+                            </button>
+                          )}
                           <button
                             onClick={() => onDeleteTrack(track.id)}
                             className="w-7 h-7 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container flex items-center justify-center transition-all cursor-pointer"

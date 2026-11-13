@@ -1151,7 +1151,7 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {isDesktop && currentTab === 'senam' && (
+            {currentTab === 'senam' && (
               <AudioPlayerView
                 appData={appData}
                 onSelectTrack={handleSelectTrack}
@@ -1190,19 +1190,17 @@ export function App({ onSignOut }: AppProps) {
       </div>
 
       {/* Bottom Floating Music Player Bar */}
-      {isDesktop && (
-        <BottomPlayerBar
-          currentTrack={currentTrack}
-          isPlaying={isPlayingMusic}
-          onTogglePlay={handleTogglePlayMusic}
-          onPlaybackChange={handlePlaybackChange}
-          onPlaybackResult={handleRemotePlaybackResult}
-          volume={masterVolume}
-          duckPercent={isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
-          stopSequence={playerStopSequence}
-          onVolumeChange={handleVolumeChange}
-        />
-      )}
+      <BottomPlayerBar
+        currentTrack={currentTrack}
+        isPlaying={isPlayingMusic}
+        onTogglePlay={handleTogglePlayMusic}
+        onPlaybackChange={handlePlaybackChange}
+        onPlaybackResult={handleRemotePlaybackResult}
+        volume={masterVolume}
+        duckPercent={isDesktop && isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
+        stopSequence={playerStopSequence}
+        onVolumeChange={handleVolumeChange}
+      />
 
       {/* Real-time Bell Active Ringing Modal */}
       <ModalActiveBell
