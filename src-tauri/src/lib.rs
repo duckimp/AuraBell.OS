@@ -11,7 +11,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::menu::{Menu, MenuItem};
 use tauri::path::BaseDirectory;
 use tauri::tray::TrayIconBuilder;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
@@ -21,6 +21,16 @@ static SYSTEM_AUDIO_ALERT_STATE: Mutex<SystemAudioAlertState> = Mutex::new(Syste
     request_id: 0,
     previous_mute: None,
 });
+static BELL_POPUP_WINDOW_STATE: Mutex<Option<BellPopupWindowState>> = Mutex::new(None);
+
+#[derive(Clone, Copy)]
+struct BellPopupWindowState {
+    was_visible: bool,
+    was_minimized: bool,
+    was_maximized: bool,
+    size: PhysicalSize<u32>,
+    position: PhysicalPosition<i32>,
+}
 
 struct SystemAudioAlertState {
     request_id: u64,
@@ -235,6 +245,16 @@ fn set_system_audio_alert(active: bool, request_id: u64) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+fn show_bell_popup(app: AppHandle) -> Result<(), String> {
+    show_bell_popup_window(&app)
+}
+
+#[tauri::command]
+fn restore_bell_popup(app: AppHandle) -> Result<(), String> {
+    restore_bell_popup_window(&app)
 }
 
 fn tts_resource_path(app: &AppHandle, relative_path: &str) -> Result<PathBuf, String> {
@@ -682,21 +702,111 @@ fn indonesian_day_name(weekday: chrono::Weekday) -> &'static str {
     }
 }
 
-fn reveal_main_window(app: &AppHandle) {
+fn show_bell_popup_window(app: &AppHandle) -> Result<(), String> {
     let Some(window) = app.get_webview_window("main") else {
-        log::warn!("Jendela utama tidak ditemukan saat bel terjadwal berbunyi");
-        return;
+        return Err("Jendela utama tidak ditemukan untuk menampilkan popup bel.".to_string());
     };
 
-    if let Err(error) = window.unminimize() {
-        log::warn!("Tidak dapat memulihkan jendela AuraBell.OS: {error}");
+    let mut popup_state = BELL_POPUP_WINDOW_STATE
+        .lock()
+        .map_err(|error| format!("Status popup bel tidak dapat diakses: {error}"))?;
+    if popup_state.is_none() {
+        *popup_state = Some(BellPopupWindowState {
+            was_visible: window
+                .is_visible()
+                .map_err(|error| format!("Status jendela tidak dapat diperiksa: {error}"))?,
+            was_minimized: window
+                .is_minimized()
+                .map_err(|error| format!("Status jendela tidak dapat diperiksa: {error}"))?,
+            was_maximized: window
+                .is_maximized()
+                .map_err(|error| format!("Status jendela tidak dapat diperiksa: {error}"))?,
+            size: window
+                .outer_size()
+                .map_err(|error| format!("Ukuran jendela tidak dapat diperiksa: {error}"))?,
+            position: window
+                .outer_position()
+                .map_err(|error| format!("Posisi jendela tidak dapat diperiksa: {error}"))?,
+        });
     }
-    if let Err(error) = window.show() {
-        log::warn!("Tidak dapat menampilkan jendela AuraBell.OS: {error}");
+
+    window
+        .set_min_size(None::<LogicalSize<f64>>)
+        .map_err(|error| format!("Batas ukuran jendela popup gagal diatur: {error}"))?;
+    window
+        .set_resizable(false)
+        .map_err(|error| format!("Jendela popup gagal diatur: {error}"))?;
+    window
+        .set_always_on_top(true)
+        .map_err(|error| format!("Popup bel gagal ditampilkan di depan: {error}"))?;
+    window
+        .unminimize()
+        .map_err(|error| format!("Jendela popup gagal dipulihkan: {error}"))?;
+    window
+        .set_size(LogicalSize::new(620.0, 620.0))
+        .map_err(|error| format!("Ukuran popup bel gagal diatur: {error}"))?;
+    window
+        .center()
+        .map_err(|error| format!("Posisi popup bel gagal diatur: {error}"))?;
+    window
+        .show()
+        .map_err(|error| format!("Popup bel gagal ditampilkan: {error}"))?;
+    window
+        .set_focus()
+        .map_err(|error| format!("Popup bel gagal difokuskan: {error}"))?;
+    Ok(())
+}
+
+fn restore_bell_popup_window(app: &AppHandle) -> Result<(), String> {
+    let Some(window) = app.get_webview_window("main") else {
+        return Err("Jendela utama tidak ditemukan untuk menutup popup bel.".to_string());
+    };
+    let mut popup_state = BELL_POPUP_WINDOW_STATE
+        .lock()
+        .map_err(|error| format!("Status popup bel tidak dapat diakses: {error}"))?;
+    let Some(previous) = *popup_state else {
+        return Ok(());
+    };
+
+    window
+        .set_always_on_top(false)
+        .map_err(|error| format!("Status popup bel gagal dipulihkan: {error}"))?;
+    window
+        .set_resizable(true)
+        .map_err(|error| format!("Ukuran jendela utama gagal dipulihkan: {error}"))?;
+    window
+        .set_min_size(Some(LogicalSize::new(800.0, 600.0)))
+        .map_err(|error| format!("Batas ukuran jendela utama gagal dipulihkan: {error}"))?;
+    window
+        .unminimize()
+        .map_err(|error| format!("Jendela utama gagal dipulihkan: {error}"))?;
+    window
+        .set_size(previous.size)
+        .map_err(|error| format!("Ukuran jendela utama gagal dipulihkan: {error}"))?;
+    window
+        .set_position(previous.position)
+        .map_err(|error| format!("Posisi jendela utama gagal dipulihkan: {error}"))?;
+    if previous.was_maximized {
+        window
+            .maximize()
+            .map_err(|error| format!("Status jendela utama gagal dipulihkan: {error}"))?;
     }
-    if let Err(error) = window.set_focus() {
-        log::warn!("Tidak dapat memfokuskan jendela AuraBell.OS: {error}");
+    if previous.was_visible {
+        window
+            .show()
+            .map_err(|error| format!("Jendela utama gagal ditampilkan kembali: {error}"))?;
+        if previous.was_minimized {
+            window
+                .minimize()
+                .map_err(|error| format!("Status jendela utama gagal dipulihkan: {error}"))?;
+        }
+    } else {
+        window
+            .hide()
+            .map_err(|error| format!("Jendela utama gagal disembunyikan kembali: {error}"))?;
     }
+    *popup_state = None;
+    Ok(())
 }
 
 // ----------------- Tauri Commands -----------------
@@ -1505,7 +1615,9 @@ fn start_scheduler_thread(
             }
 
             if let Some(item) = item_to_trigger {
-                reveal_main_window(&app);
+                if let Err(error) = show_bell_popup_window(&app) {
+                    log::error!("Gagal menampilkan popup bel terjadwal: {error}");
+                }
                 let payload = BellTriggerPayload {
                     schedule_id: Some(item.id),
                     title: item.title,
@@ -1586,6 +1698,8 @@ pub fn run() {
             get_app_data,
             save_app_data,
             set_system_audio_alert,
+            show_bell_popup,
+            restore_bell_popup,
             export_app_backup,
             restore_app_backup,
             trigger_bell_manual,
@@ -1607,6 +1721,9 @@ pub fn run() {
         .expect("error while building AuraBell.OS")
         .run(|app_handle, event| {
             if let tauri::RunEvent::Exit = &event {
+                if let Err(error) = restore_bell_popup_window(app_handle) {
+                    log::error!("Gagal memulihkan jendela utama saat keluar: {error}");
+                }
                 if let Err(error) = set_system_audio_alert(false, u64::MAX) {
                     log::error!("Gagal memulihkan mute audio sistem saat keluar: {error}");
                 }

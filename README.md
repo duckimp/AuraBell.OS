@@ -13,6 +13,7 @@ Catatan handoff untuk melanjutkan pengembangan lintas perangkat tersedia di [DEV
 - Jadwal bel untuk mode **Reguler**, **Ujian**, dan **Ramadan**, dengan pengaturan waktu, hari, status aktif, dan audio per jadwal.
 - Suara jadwal desktop berupa nada bawaan atau file audio lokal.
 - Scheduler desktop berjalan saat AuraBell.OS terbuka, termasuk saat jendela disembunyikan ke system tray.
+- Saat bel berbunyi dari tray/minimize, jendela utama berubah sementara menjadi popup bel ringkas di depan; setelah popup ditutup, keadaan jendela sebelumnya dipulihkan.
 - Dashboard menampilkan jadwal berikutnya, status scheduler/receiver, peringatan volume/audio, tes output, dan pratinjau sirene darurat 5 detik.
 - Bisa melewati satu kejadian jadwal berikutnya dengan konfirmasi; jadwal rutin tidak diubah. Riwayat aktivitas bel lokal menampilkan 30 kejadian terakhir dan status pemutarannya.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.

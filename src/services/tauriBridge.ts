@@ -278,6 +278,18 @@ export const tauriBridge = {
     await invoke('set_system_audio_alert', { active, requestId });
   },
 
+  async showBellPopup(): Promise<void> {
+    if (!isTauri()) return;
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('show_bell_popup');
+  },
+
+  async restoreBellPopup(): Promise<void> {
+    if (!isTauri()) return;
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('restore_bell_popup');
+  },
+
   async restoreAppBackup(sourcePath: string): Promise<AppData> {
     const { invoke } = await import('@tauri-apps/api/core');
     return invoke<AppData>('restore_app_backup', { sourcePath });

@@ -288,6 +288,14 @@ export function App({ onSignOut }: AppProps) {
 
       void (async () => {
         try {
+          await tauriBridge.showBellPopup();
+        } catch (error) {
+          console.error('Gagal menampilkan popup bel:', error);
+          if (requestId === audioAlertRequestId) {
+            setActiveBellError(`Gagal menampilkan popup bel: ${String(error)}`);
+          }
+        }
+        try {
           await tauriBridge.setSystemAudioAlert(true, requestId);
         } catch (error) {
           console.error('Gagal membuka mute audio sistem:', error);
@@ -316,6 +324,9 @@ export function App({ onSignOut }: AppProps) {
       });
       setActiveBell(null);
       setIsBellPlaybackActive(false);
+      void tauriBridge.restoreBellPopup().catch((error: unknown) => {
+        console.error('Gagal memulihkan jendela setelah bel dihentikan:', error);
+      });
       if (activeHistoryIdRef.current) {
         updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
       }
@@ -362,6 +373,14 @@ export function App({ onSignOut }: AppProps) {
         const command = await claimRemoteAnnouncement(commandId);
         if (!active || !command) return;
 
+        setActiveBellError(null);
+        try {
+          await tauriBridge.showBellPopup();
+        } catch (error) {
+          console.error('Gagal menampilkan popup pengumuman:', error);
+          setActiveBellError(`Gagal menampilkan popup pengumuman: ${String(error)}`);
+        }
+
         const requestId = ++audioAlertRequestId;
         systemAudioAlertActiveRef.current = true;
         remoteAnnouncementFinishRef.current?.('Pengumuman sebelumnya dihentikan oleh pengumuman baru.');
@@ -369,7 +388,6 @@ export function App({ onSignOut }: AppProps) {
           hour: '2-digit',
           minute: '2-digit',
         });
-        setActiveBellError(null);
         setActiveBell({
           title: 'Pengumuman Remote',
           time,
@@ -399,6 +417,9 @@ export function App({ onSignOut }: AppProps) {
             } else {
               setActiveBell(null);
               setActiveBellError(null);
+              void tauriBridge.restoreBellPopup().catch((error: unknown) => {
+                console.error('Gagal memulihkan jendela setelah pengumuman:', error);
+              });
             }
           }
           void completeRemoteAnnouncement(command.id, failure).catch((error: unknown) => {
@@ -676,6 +697,9 @@ export function App({ onSignOut }: AppProps) {
     void tauriBridge.setSystemAudioAlert(false, audioAlertRequestId).catch((error: unknown) => {
       console.error('Gagal mengembalikan status mute audio sistem:', error);
       setActiveBellError(`Gagal mengembalikan status mute audio sistem: ${String(error)}`);
+    });
+    void tauriBridge.restoreBellPopup().catch((error: unknown) => {
+      console.error('Gagal memulihkan jendela utama setelah popup ditutup:', error);
     });
     setActiveBell(null);
     setActiveBellError(null);
