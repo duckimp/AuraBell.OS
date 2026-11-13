@@ -1,8 +1,8 @@
 import React from 'react';
 import { Bell, LayoutDashboard, Mic2, Music2, CalendarDays, Volume2, GraduationCap, Power, Settings, ExternalLink, LogOut } from 'lucide-react';
-import { isTauri } from '../services/tauriBridge';
 
 interface SidebarProps {
+  isDesktop: boolean;
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   masterVolume: number;
@@ -14,6 +14,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
+  isDesktop,
   currentTab,
   setCurrentTab,
   masterVolume,
@@ -61,6 +62,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       mobileVisible: false,
     },
   ];
+  const visibleNavItems = navItems.filter((item) =>
+    isDesktop ? item.id !== 'tts' : item.id === 'tts'
+  );
 
   const modeLabel: Record<string, { label: string; color: string }> = {
     reguler: { label: 'Reguler', color: 'bg-primary text-on-primary' },
@@ -100,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Main Navigation */}
         <nav className="flex flex-col gap-1 pt-1 max-[1100px]:items-center max-[700px]:h-full max-[700px]:w-full max-[700px]:flex-row max-[700px]:justify-around max-[700px]:gap-0 max-[700px]:pt-0">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
             return (
@@ -147,33 +151,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Speaker / Hardware Status Widget */}
       <div className="p-4 m-4 mt-0 max-[1100px]:p-2 max-[1100px]:m-2 max-[700px]:hidden">
-        <div className="bg-surface-container-low rounded-xl p-3 flex flex-col gap-2 border border-outline-variant/20">
-          <div title={`Volume master: ${masterVolume}%`} className="flex items-center justify-between max-[1100px]:justify-center">
-            <span className="text-sm text-on-surface font-semibold flex items-center gap-1.5">
-              <Volume2 className="w-3.5 h-3.5 text-primary" />
-              <span className="max-[1100px]:hidden">Volume master</span>
-            </span>
-            <span className="font-mono font-bold text-sm text-primary max-[1100px]:hidden">{masterVolume}%</span>
-          </div>
-          <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${masterVolume}%` }} />
-          </div>
-          {isTauri() && (
+        {isDesktop && (
+          <div className="mb-3 rounded-xl border border-outline-variant/20 bg-surface-container-low p-3">
+            <div title={`Volume master: ${masterVolume}%`} className="flex items-center justify-between max-[1100px]:justify-center">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-on-surface">
+                <Volume2 className="h-3.5 w-3.5 text-primary" />
+                <span className="max-[1100px]:hidden">Volume master</span>
+              </span>
+              <span className="font-mono text-sm font-bold text-primary max-[1100px]:hidden">{masterVolume}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${masterVolume}%` }} />
+            </div>
             <button
               onClick={onToggleAutoStart}
               title={`Mulai saat login: ${autoStartEnabled ? 'Aktif' : 'Mati'}`}
-              className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20 text-sm font-semibold text-on-surface-variant hover:text-primary"
+              className="mt-2 flex w-full items-center justify-between gap-2 border-t border-outline-variant/20 pt-2 text-sm font-semibold text-on-surface-variant hover:text-primary"
             >
               <span className="flex items-center gap-2 max-[1100px]:justify-center">
-                <Power className="w-4 h-4" />
+                <Power className="h-4 w-4" />
                 <span className="max-[1100px]:hidden">Mulai saat login</span>
               </span>
               <span className="max-[1100px]:hidden">{autoStartEnabled ? 'Aktif' : 'Mati'}</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
         <button
           onClick={onSignOut}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low hover:text-error"

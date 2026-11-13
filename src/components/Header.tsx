@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Bell,
   Power,
 } from 'lucide-react';
 
@@ -13,9 +12,7 @@ interface HeaderProps {
   autoBellEnabled: boolean;
   activeMode: string;
   isDesktop: boolean;
-  browserBellEnabled: boolean;
   onToggleAutoBell: () => void;
-  onToggleBrowserBell: () => void;
   onEmergencyTrigger: () => void;
 }
 
@@ -28,9 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   autoBellEnabled,
   activeMode,
   isDesktop,
-  browserBellEnabled,
   onToggleAutoBell,
-  onToggleBrowserBell,
   onEmergencyTrigger,
 }) => {
   const [timeStr, setTimeStr] = useState('');
@@ -64,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
-        {isDesktop ? (
+        {isDesktop && (
           <button
             onClick={onToggleAutoBell}
             title="Klik untuk mengaktifkan/menonaktifkan penjadwalan otomatis"
@@ -92,22 +87,6 @@ export const Header: React.FC<HeaderProps> = ({
               </>
             )}
           </button>
-        ) : (
-          <button
-            type="button"
-            role="switch"
-            aria-checked={browserBellEnabled}
-            onClick={onToggleBrowserBell}
-            title={browserBellEnabled ? 'Nonaktifkan semua bunyi bel di browser' : 'Aktifkan bunyi bel di browser'}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-all max-[700px]:gap-0 max-[700px]:px-2 ${
-              browserBellEnabled
-                ? 'border-error/30 bg-error-container/60 text-error hover:bg-error-container'
-                : 'border-primary/20 bg-primary/8 text-primary hover:bg-primary/12'
-            }`}
-          >
-            <Bell className="h-4 w-4" />
-            <span className="max-[700px]:hidden">{browserBellEnabled ? 'Bel browser aktif' : 'Bel browser nonaktif'}</span>
-          </button>
         )}
       </div>
 
@@ -123,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-xs text-on-surface-variant font-medium">{dateStr}</span>
         </div>
 
-        {(isDesktop || browserBellEnabled) && (
+        {isDesktop && (
           <button
             onClick={onEmergencyTrigger}
             title="Darurat: Bunyikan Bel"

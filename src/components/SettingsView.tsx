@@ -337,41 +337,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </button>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="font-headline text-base font-bold text-primary">Penerima Pengumuman Remote</h2>
-            <p className="mt-1 text-sm text-on-surface-variant">
-              Perangkat ini (Ruang TU) menerima pengumuman dari akun sekolah. Jadwal bel otomatis tetap berjalan lokal di aplikasi desktop.
-            </p>
+      {isTauri() && (
+        <section className="flex flex-col gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-headline text-base font-bold text-primary">Penerima Pengumuman Remote</h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Desktop Ruang TU menerima TTS dari PWA dan perintah audio senam. Jadwal bel berjalan lokal di aplikasi desktop.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={remoteReceiverEnabled}
+              onClick={() => handleRemoteReceiverChange(!remoteReceiverEnabled)}
+              className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
+                remoteReceiverEnabled
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container text-on-surface-variant'
+              }`}
+            >
+              {remoteReceiverEnabled ? 'Aktif' : 'Nonaktif'}
+            </button>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={remoteReceiverEnabled}
-            onClick={() => handleRemoteReceiverChange(!remoteReceiverEnabled)}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
-              remoteReceiverEnabled
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container text-on-surface-variant'
-            }`}
-          >
-            {remoteReceiverEnabled ? 'Aktif' : 'Nonaktif'}
-          </button>
-        </div>
-        <p className="rounded-xl bg-surface-container-low p-3 text-xs text-on-surface-variant">
-          Perangkat tujuan: <strong>ruang-tu</strong>. Receiver ini menerima pengumuman suara dan kontrol pemutar audio dari pustaka lokal. Guru dapat mengirim perintah putar/jeda/berhenti, tetapi file lagu tidak diunggah. Browser/PWA dapat memakai voice browser yang tersedia—gunakan Chrome di komputer TU bila Google Bahasa Indonesia terdeteksi. Halaman/browser harus tetap terbuka. Jika Tauri dan browser sama-sama aktif sebagai receiver, salah satunya akan menerima tiap perintah.
-        </p>
-        <p role="status" className={`text-xs font-semibold ${
-          remoteReceiverStatus === 'connected'
-            ? 'text-primary'
-            : remoteReceiverStatus === 'error'
-              ? 'text-error'
-              : 'text-on-surface-variant'
-        }`}>
-          {receiverStatusText[remoteReceiverStatus]}
-        </p>
-      </section>
+          <p className="rounded-xl bg-surface-container-low p-3 text-xs text-on-surface-variant">
+            Perangkat tujuan: <strong>ruang-tu</strong>. Hanya aktifkan receiver di desktop TU. Suara pengumuman menggunakan voice sistem/WebView yang tersedia di komputer TU; file musik tetap lokal dan tidak diunggah. Biarkan desktop berjalan dan tersambung internet agar bisa menerima perintah.
+          </p>
+          <p role="status" className={`text-xs font-semibold ${
+            remoteReceiverStatus === 'connected'
+              ? 'text-primary'
+              : remoteReceiverStatus === 'error'
+                ? 'text-error'
+                : 'text-on-surface-variant'
+          }`}>
+            {receiverStatusText[remoteReceiverStatus]}
+          </p>
+        </section>
+      )}
 
       <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-space-lg shadow-sm">
         <div className="flex items-center gap-2 border-b border-surface-container pb-3">

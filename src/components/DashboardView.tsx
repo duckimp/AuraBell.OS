@@ -477,7 +477,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       {/* QUICK ACCESS SPLIT GRID: Instant Senam Player vs Instant TTS Announcement */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+      <div className="grid grid-cols-1 gap-space-lg">
         {/* Left: Quick Senam Player Card */}
         <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm flex flex-col justify-between">
           <div>
@@ -563,6 +563,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Right: Quick TTS Announcement Card */}
+        {!isTauri() && (
         <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-surface-container">
@@ -702,6 +703,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           </div>
         </div>
+        )}
       </div>
 
       {/* Today's Schedule Table */}

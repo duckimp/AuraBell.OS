@@ -108,6 +108,7 @@ export const ModalAddSchedule: React.FC<ModalAddScheduleProps> = ({
 
     try {
       const selected = await open({
+        title: 'Pilih audio untuk jadwal bel',
         multiple: false,
         filters: [{ name: 'File audio', extensions: ['mp3', 'wav', 'm4a', 'ogg'] }],
       });
@@ -281,7 +282,11 @@ export const ModalAddSchedule: React.FC<ModalAddScheduleProps> = ({
             >
               <option value="standard">Nada bel bawaan</option>
               <option value="custom">File audio tersimpan</option>
-              <option value="tts">Pengumuman TTS</option>
+              {(!isTauri() || itemToEdit?.audio_type === 'tts') && (
+                <option value="tts">
+                  {isTauri() ? 'Pengumuman TTS (jadwal lama)' : 'Pengumuman TTS'}
+                </option>
+              )}
             </select>
 
             {audioType === 'standard' && (

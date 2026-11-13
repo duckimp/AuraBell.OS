@@ -57,18 +57,19 @@ const SettingsView = lazy(() =>
   import('./components/SettingsView').then(({ SettingsView }) => ({ default: SettingsView }))
 );
 
-const BROWSER_BELL_ENABLED_KEY = 'aurabell_browser_bell_enabled';
-
 export function App({ onSignOut }: AppProps) {
+  const isDesktop = isTauri();
   const [appData, setAppData] = useState<AppData | null>(null);
-  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [currentTab, setCurrentTab] = useState<string>(() => isDesktop ? 'dashboard' : 'tts');
 
   // Active Bell Modal state
   const [activeBell, setActiveBell] = useState<BellTriggerPayload | null>(null);
   const [isBellPlaybackActive, setIsBellPlaybackActive] = useState(false);
+  const [activeBellError, setActiveBellError] = useState<string | null>(null);
   const [skipOccurrenceKey, setSkipOccurrenceKey] = useState<string | null>(null);
   const activeHistoryIdRef = useRef<string | null>(null);
   const testHistoryIdRef = useRef<string | null>(null);
+  const remoteAnnouncementFinishRef = useRef<((failureMessage?: string) => void) | null>(null);
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteLibraryPublishedRef = useRef(false);
   const pendingRemotePlaybackRef = useRef<{
@@ -158,9 +159,6 @@ export function App({ onSignOut }: AppProps) {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [remoteReceiverEnabled, setRemoteReceiverEnabled] = useState(false);
   const [remoteReceiverStatus, setRemoteReceiverStatus] = useState<RemoteReceiverStatus>('disabled');
-  const [browserBellEnabled, setBrowserBellEnabled] = useState(
-    () => typeof window !== 'undefined' && localStorage.getItem(BROWSER_BELL_ENABLED_KEY) === 'true'
-  );
   const [ttsVoiceGender, setTtsVoiceGender] = useState<VoiceGender>(() =>
     typeof window !== 'undefined' && localStorage.getItem('aurabell_tts_voice') === 'male'
       ? 'male'
@@ -217,6 +215,8 @@ export function App({ onSignOut }: AppProps) {
       if (activeHistoryIdRef.current) {
         updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
       }
+      remoteAnnouncementFinishRef.current?.('Pengumuman dihentikan karena bel lain dimulai.');
+      setActiveBellError(null);
       setActiveBell(payload);
       setIsBellPlaybackActive(true);
       audioEngine.stopBellAudio();
@@ -299,7 +299,7 @@ export function App({ onSignOut }: AppProps) {
 
   useEffect(() => {
     const updateReceiverSetting = () => {
-      const enabled = localStorage.getItem(REMOTE_RECEIVER_STORAGE_KEY) === 'true';
+      const enabled = isDesktop && localStorage.getItem(REMOTE_RECEIVER_STORAGE_KEY) === 'true';
       setRemoteReceiverEnabled(enabled);
       if (!enabled) setRemoteReceiverStatus('disabled');
     };
@@ -310,10 +310,10 @@ export function App({ onSignOut }: AppProps) {
       window.removeEventListener('storage', updateReceiverSetting);
       window.removeEventListener('aurabell-remote-receiver-config-changed', updateReceiverSetting);
     };
-  }, []);
+  }, [isDesktop]);
 
   useEffect(() => {
-    if (!remoteReceiverEnabled || !supabase) return;
+    if (!isDesktop || !remoteReceiverEnabled || !supabase) return;
 
     let active = true;
     setRemoteReceiverStatus('connecting');
@@ -322,11 +322,41 @@ export function App({ onSignOut }: AppProps) {
         const command = await claimRemoteAnnouncement(commandId);
         if (!active || !command) return;
 
+        remoteAnnouncementFinishRef.current?.('Pengumuman sebelumnya dihentikan oleh pengumuman baru.');
+        const time = new Date().toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        setActiveBellError(null);
+        setActiveBell({
+          title: 'Pengumuman Remote',
+          time,
+          audio_file: 'Suara browser',
+          audio_type: 'tts',
+          tts_text: command.announcement_text,
+          category: 'remote',
+          is_emergency: false,
+        });
+        setIsBellPlaybackActive(true);
+        let finished = false;
         const finish = (failure?: string) => {
+          if (finished) return;
+          finished = true;
+          if (remoteAnnouncementFinishRef.current === finish) {
+            remoteAnnouncementFinishRef.current = null;
+          }
+          setIsBellPlaybackActive(false);
+          if (failure) {
+            setActiveBellError(failure);
+          } else {
+            setActiveBell(null);
+            setActiveBellError(null);
+          }
           void completeRemoteAnnouncement(command.id, failure).catch((error: unknown) => {
             console.error('Gagal memperbarui status pengumuman remote:', error);
           });
         };
+        remoteAnnouncementFinishRef.current = finish;
         audioEngine.speakIndonesian(command.announcement_text, {
           gender: ttsVoiceGender,
           rate: 0.95,
@@ -350,7 +380,10 @@ export function App({ onSignOut }: AppProps) {
               full_text: command.announcement_text,
             });
           },
-          onError: (message) => finish(message),
+          onError: (message) => {
+            console.error('Gagal memutar pengumuman remote:', message);
+            finish(message);
+          },
         });
       } catch (error) {
         console.error('Gagal menerima pengumuman remote:', error);
@@ -366,9 +399,10 @@ export function App({ onSignOut }: AppProps) {
       active = false;
       unsubscribe();
     };
-  }, [remoteReceiverEnabled, ttsVoiceGender]);
+  }, [isDesktop, remoteReceiverEnabled, ttsVoiceGender]);
 
   useEffect(() => {
+    if (!isDesktop) return;
     if (!remoteReceiverEnabled || !supabase || !appData) {
       if (!remoteReceiverEnabled && remoteLibraryPublishedRef.current) {
         remoteLibraryPublishedRef.current = false;
@@ -396,10 +430,10 @@ export function App({ onSignOut }: AppProps) {
     publishLibrary();
     const heartbeat = setInterval(publishLibrary, 30000);
     return () => clearInterval(heartbeat);
-  }, [remoteReceiverEnabled, appData?.playlist]);
+  }, [isDesktop, remoteReceiverEnabled, appData?.playlist]);
 
   useEffect(() => {
-    if (!remoteReceiverEnabled || !supabase) return;
+    if (!isDesktop || !remoteReceiverEnabled || !supabase) return;
     let active = true;
     const unsubscribe = subscribeToRemoteAudioCommands((commandId) => {
       remoteAudioCommandQueueRef.current = remoteAudioCommandQueueRef.current
@@ -487,21 +521,21 @@ export function App({ onSignOut }: AppProps) {
       active = false;
       unsubscribe();
     };
-  }, [isBellPlaybackActive, remoteReceiverEnabled]);
+  }, [isDesktop, isBellPlaybackActive, remoteReceiverEnabled]);
 
   // Bell actions
   const handleTriggerBell = useCallback(
     (title: string, audioFile: string, category = 'reguler', isEmergency = false) => {
-      if (!isTauri() && !browserBellEnabled) return;
+      if (!isDesktop) return;
       void tauriBridge.triggerBell(title, audioFile, category, isEmergency).catch((error: unknown) => {
         console.error('Gagal membunyikan bel:', error);
       });
     },
-    [browserBellEnabled]
+    [isDesktop]
   );
 
   const handleTestBellAudio = useCallback(() => {
-    if ((!isTauri() && !browserBellEnabled) || isBellPlaybackActive) return;
+    if (!isDesktop || isBellPlaybackActive) return;
     if (testHistoryIdRef.current) {
       updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
     }
@@ -523,10 +557,10 @@ export function App({ onSignOut }: AppProps) {
         },
       }
     );
-  }, [addBellHistory, browserBellEnabled, isBellPlaybackActive, updateBellHistoryStatus]);
+  }, [addBellHistory, isBellPlaybackActive, isDesktop, updateBellHistoryStatus]);
 
   const handlePreviewEmergencyAudio = useCallback(() => {
-    if ((!isTauri() && !browserBellEnabled) || isBellPlaybackActive) return;
+    if (!isDesktop || isBellPlaybackActive) return;
     if (testHistoryIdRef.current) {
       updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
     }
@@ -555,33 +589,11 @@ export function App({ onSignOut }: AppProps) {
       if (historyId) updateBellHistoryStatus(historyId, 'completed');
       setIsBellPlaybackActive(false);
     }, 5000);
-  }, [addBellHistory, browserBellEnabled, isBellPlaybackActive, updateBellHistoryStatus]);
+  }, [addBellHistory, isBellPlaybackActive, isDesktop, updateBellHistoryStatus]);
 
   useEffect(() => () => {
     if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
   }, []);
-
-  const handleToggleBrowserBell = () => {
-    const enabled = !browserBellEnabled;
-    localStorage.setItem(BROWSER_BELL_ENABLED_KEY, String(enabled));
-    setBrowserBellEnabled(enabled);
-    if (!enabled) {
-      if (activeHistoryIdRef.current) {
-        updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
-      }
-      if (testHistoryIdRef.current) {
-        updateBellHistoryStatus(testHistoryIdRef.current, 'stopped');
-      }
-      setIsBellPlaybackActive(false);
-      audioEngine.stopBellAudio();
-      audioEngine.stopEmergencySiren();
-      if (previewTimeoutRef.current) {
-        clearTimeout(previewTimeoutRef.current);
-        previewTimeoutRef.current = null;
-      }
-      setActiveBell(null);
-    }
-  };
 
   const handleRemoteAudioCommand = async (action: RemoteAudioAction, trackId?: string) => {
     const currentBell = activeBell;
@@ -592,7 +604,9 @@ export function App({ onSignOut }: AppProps) {
   };
 
   const handleStopBell = useCallback(() => {
+    remoteAnnouncementFinishRef.current?.('Pengumuman dihentikan oleh operator.');
     setActiveBell(null);
+    setActiveBellError(null);
     setIsBellPlaybackActive(false);
     if (activeHistoryIdRef.current) {
       updateBellHistoryStatus(activeHistoryIdRef.current, 'stopped');
@@ -986,6 +1000,7 @@ export function App({ onSignOut }: AppProps) {
     <div className="min-h-screen bg-background text-on-surface flex">
       {/* Sidebar Navigation */}
       <Sidebar
+        isDesktop={isDesktop}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         masterVolume={masterVolume}
@@ -1004,10 +1019,8 @@ export function App({ onSignOut }: AppProps) {
           schoolName={appData.settings.school_name}
           autoBellEnabled={appData.settings.auto_bell_enabled}
           activeMode={appData.settings.active_mode}
-          isDesktop={isTauri()}
-          browserBellEnabled={browserBellEnabled}
+          isDesktop={isDesktop}
           onToggleAutoBell={handleToggleAutoBell}
-          onToggleBrowserBell={handleToggleBrowserBell}
           onEmergencyTrigger={handleEmergencyTrigger}
         />
 
@@ -1020,10 +1033,10 @@ export function App({ onSignOut }: AppProps) {
               </div>
             }
           >
-            {currentTab === 'dashboard' && (
+            {isDesktop && currentTab === 'dashboard' && (
               <DashboardView
                 appData={appData}
-                canPlayBell={isTauri() || browserBellEnabled}
+                canPlayBell={isDesktop}
                 isBellPlaybackActive={isBellPlaybackActive}
                 onTriggerBell={handleTriggerBell}
                 onTestBellAudio={handleTestBellAudio}
@@ -1043,10 +1056,10 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {currentTab === 'jadwal' && (
+            {isDesktop && currentTab === 'jadwal' && (
               <ScheduleView
                 appData={appData}
-                canPlayBell={isTauri() || browserBellEnabled}
+                canPlayBell={isDesktop}
                 onUpdateSchedules={handleUpdateSchedules}
                 onSetActiveMode={handleSetActiveMode}
                 onOpenAddModal={handleOpenAddModal}
@@ -1054,7 +1067,7 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {currentTab === 'tts' && (
+            {!isDesktop && currentTab === 'tts' && (
               <TtsView
                 appData={appData}
                 onAddRecord={handleAddTtsRecord}
@@ -1066,7 +1079,7 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {currentTab === 'senam' && (
+            {isDesktop && currentTab === 'senam' && (
               <AudioPlayerView
                 appData={appData}
                 onSelectTrack={handleSelectTrack}
@@ -1081,7 +1094,7 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {currentTab === 'khusus' && (
+            {isDesktop && currentTab === 'khusus' && (
               <SpecialScheduleView
                 appData={appData}
                 onUpdateHolidays={handleUpdateHolidays}
@@ -1089,7 +1102,7 @@ export function App({ onSignOut }: AppProps) {
               />
             )}
 
-            {currentTab === 'pengaturan' && (
+            {isDesktop && currentTab === 'pengaturan' && (
               <SettingsView
                 appData={appData}
                 onSaveSchoolSettings={handleSaveSchoolSettings}
@@ -1105,22 +1118,28 @@ export function App({ onSignOut }: AppProps) {
       </div>
 
       {/* Bottom Floating Music Player Bar */}
-      <BottomPlayerBar
-        currentTrack={currentTrack}
-        isPlaying={isPlayingMusic}
-        onTogglePlay={handleTogglePlayMusic}
-        onPlaybackChange={handlePlaybackChange}
-        onPlaybackResult={handleRemotePlaybackResult}
-        volume={masterVolume}
-        duckPercent={isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
-        stopSequence={playerStopSequence}
-        onVolumeChange={handleVolumeChange}
-      />
+      {isDesktop && (
+        <BottomPlayerBar
+          currentTrack={currentTrack}
+          isPlaying={isPlayingMusic}
+          onTogglePlay={handleTogglePlayMusic}
+          onPlaybackChange={handlePlaybackChange}
+          onPlaybackResult={handleRemotePlaybackResult}
+          volume={masterVolume}
+          duckPercent={isBellPlaybackActive ? (appData.settings.music_duck_percent ?? 20) : 100}
+          stopSequence={playerStopSequence}
+          onVolumeChange={handleVolumeChange}
+        />
+      )}
 
       {/* Real-time Bell Active Ringing Modal */}
       <ModalActiveBell
         payload={activeBell}
-        onClose={() => setActiveBell(null)}
+        errorMessage={activeBellError}
+        onClose={() => {
+          setActiveBell(null);
+          setActiveBellError(null);
+        }}
         onStopBell={handleStopBell}
       />
 

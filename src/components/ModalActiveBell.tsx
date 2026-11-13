@@ -4,12 +4,14 @@ import { BellTriggerPayload } from '../types';
 
 interface ModalActiveBellProps {
   payload: BellTriggerPayload | null;
+  errorMessage?: string | null;
   onClose: () => void;
   onStopBell: () => void;
 }
 
 export const ModalActiveBell: React.FC<ModalActiveBellProps> = ({
   payload,
+  errorMessage,
   onClose,
   onStopBell,
 }) => {
@@ -106,6 +108,18 @@ export const ModalActiveBell: React.FC<ModalActiveBellProps> = ({
           </span>
         </p>
 
+        {payload.tts_text && (
+          <p className="mb-4 max-h-28 w-full overflow-y-auto rounded-xl bg-surface-container-low px-4 py-3 text-left text-sm">
+            {payload.tts_text}
+          </p>
+        )}
+
+        {errorMessage && (
+          <p role="alert" className="mb-4 w-full rounded-xl bg-error/10 px-4 py-3 text-left text-sm text-error">
+            Suara tidak berhasil diputar: {errorMessage}
+          </p>
+        )}
+
         {/* Soundwave Simulation Bar */}
         <div className="w-full h-12 bg-surface-container-low rounded-xl flex items-center justify-center gap-1.5 px-4 mb-6 overflow-hidden">
           {[20, 50, 80, 100, 70, 90, 40, 60, 95, 80, 50, 75, 100, 60, 40, 80, 30].map(
@@ -134,7 +148,7 @@ export const ModalActiveBell: React.FC<ModalActiveBellProps> = ({
             className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-error hover:bg-red-700 text-white font-headline font-bold text-sm shadow-md transition-all cursor-pointer active:scale-95"
           >
             <Square className="w-4 h-4 fill-current" />
-            <span>Hentikan Bel Sekarang</span>
+            <span>{errorMessage ? 'Tutup' : 'Hentikan Bel Sekarang'}</span>
           </button>
         </div>
       </div>

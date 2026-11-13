@@ -2,7 +2,7 @@
 
 **Sistem otomasi bel sekolah, pengumuman suara, dan manajemen media audio.**
 
-AuraBell.OS adalah aplikasi desktop lokal untuk membantu operator sekolah mengatur jadwal bel, memanggil siswa atau guru dengan Text-to-Speech (TTS), serta mengelola audio sekolah dalam satu aplikasi.
+AuraBell.OS menyediakan desktop untuk jadwal bel dan audio sekolah, serta PWA untuk mengirim panggilan Text-to-Speech (TTS) dari perangkat mobile ke komputer TU.
 
 > **Status:** Dalam pengembangan. Uji aplikasi dan pastikan jadwal serta volume audio sesuai kondisi sekolah sebelum digunakan untuk operasional.
 
@@ -11,16 +11,17 @@ Catatan handoff untuk melanjutkan pengembangan lintas perangkat tersedia di [DEV
 ## Fitur
 
 - Jadwal bel untuk mode **Reguler**, **Ujian**, dan **Ramadan**, dengan pengaturan waktu, hari, status aktif, dan audio per jadwal.
-- Suara jadwal berupa nada bawaan, file audio lokal, TTS, atau nada yang diikuti pengumuman TTS.
+- Suara jadwal desktop berupa nada bawaan atau file audio lokal.
 - Scheduler desktop berjalan saat AuraBell.OS terbuka, termasuk saat jendela disembunyikan ke system tray.
 - Dashboard menampilkan jadwal berikutnya, status scheduler/receiver, peringatan volume/audio, tes output, dan pratinjau sirene darurat 5 detik.
 - Bisa melewati satu kejadian jadwal berikutnya dengan konfirmasi; jadwal rutin tidak diubah. Riwayat aktivitas bel lokal menampilkan 30 kejadian terakhir dan status pemutarannya.
 - Panggilan suara untuk siswa, guru, karyawan, dan pengumuman umum, dengan teks yang dapat diedit sebelum dibacakan.
-- Login email/password Supabase, pengiriman pengumuman remote ke komputer TU, serta PWA yang dapat dipasang dari browser.
+- Login email/password Supabase; PWA mobile mengirim pengumuman TTS remote ke desktop komputer TU.
 - Kontrol remote untuk memilih dan memutar lagu dari pustaka komputer TU, termasuk jeda dan berhenti. File lagu tidak dikirim melalui Supabase.
-- Tampilan browser responsif untuk ponsel dengan navigasi bawah yang hanya menampilkan Dashboard, Panggilan Suara/Pengumuman, Senam & Audio, dan Keluar, serta kontrol pemutar yang ringkas.
-- Pilihan TTS **Suara Sistem** atau **Piper Offline** untuk desktop. Linux mencoba Speech Dispatcher dengan voice Bahasa Indonesia lalu beralih ke Piper jika gagal; platform desktop lain menggunakan Web Speech API dan fallback ke Piper.
-- Pemilihan suara TTS pria/wanita di mode browser, mengikuti voice yang tersedia pada sistem.
+- Tampilan browser/PWA khusus untuk membuat dan mengirim panggilan TTS; PWA tidak menjadi receiver atau pemutar bel/audio senam.
+- Desktop TU menerima pengumuman TTS PWA dan perintah audio senam remote. Jadwal bel dan pemutaran audio senam tetap dijalankan desktop.
+- Pengumuman remote yang dikirim dari PWA dibacakan oleh voice WebView yang tersedia di desktop TU.
+- Pemilihan suara TTS pria/wanita di PWA, mengikuti voice browser yang tersedia pada perangkat pengirim.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.
 - Impor file audio lokal. Di desktop, file disalin ke penyimpanan aplikasi agar tetap tersedia setelah aplikasi ditutup; sirene darurat juga dapat memakai file dari pustaka.
 - Pengaturan identitas sekolah dan backup/restore.
@@ -44,10 +45,10 @@ Artifact disimpan selama 14 hari. Workflow mengunggah installer sebagai artifact
 2. Jalankan SQL secara berurutan melalui Supabase SQL Editor: `supabase/migrations/20261110_remote_announcements.sql`, lalu `supabase/migrations/20261110_remote_audio_controls.sql`.
 3. Di Supabase Authentication, nonaktifkan pendaftaran publik, lalu buat akun petugas melalui **Authentication → Users** dan atur URL aplikasi pada **URL Configuration**. Rate limit Supabase Auth aktif secara default; antarmuka login juga memberi jeda setelah respons HTTP 429. Remote control mengizinkan pengguna terautentikasi mengirim pengumuman ke satu sekolah, jadi hanya undang akun yang dipercaya.
 4. Di Vercel, impor repository ini, gunakan build command `npm run build` dan output directory `dist`, lalu tambahkan environment variables `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY`. Untuk installer desktop dari GitHub Actions, tambahkan dua nilai yang sama sebagai repository **Actions Variables** atau **Actions Secrets** dengan nama tersebut. Workflow menggunakan Variables lebih dulu, lalu Secrets, dan menghentikan build jika salah satu nilai belum tersedia. Setelah deploy, tambahkan domain Vercel ke Supabase **URL Configuration / Redirect URLs**.
-5. Login di komputer TU pada aplikasi AuraBell.OS desktop dan biarkan terbuka/minimize ke tray agar scheduler tetap bekerja. Untuk mencoba voice Google, buka PWA di **Chrome pada komputer TU**, login, aktifkan **Pengaturan Sekolah → Penerima Pengumuman Remote**, dan biarkan Chrome/PWA tetap terbuka serta perangkat tidak tidur. Tauri menjalankan scheduler dan bel WAV lokal; Chrome menerima pengumuman remote. Di mode browser, **bunyi bel manual default nonaktif** melalui sakelar di navbar agar tidak bertabrakan dengan bel desktop. Dari browser/PWA di ruang rapat, buka **Panggilan Suara** dan tekan **Kirim ke Ruang TU**.
-6. Di Chrome/Edge, pilih **Install app** atau **Install this site as an app** untuk memasang PWA. PWA adalah antarmuka pengendali; komputer TU tetap perlu menjalankan aplikasi desktop untuk tray dan scheduler lokal.
+5. Login di komputer TU pada aplikasi AuraBell.OS desktop, aktifkan **Pengaturan Sekolah → Penerima Pengumuman Remote**, lalu biarkan desktop terbuka atau minimize ke tray dan komputer tetap tersambung internet. Desktop menjalankan jadwal bel lokal, menyimpan/memutar audio senam, serta membacakan TTS yang diterima.
+6. Login ke PWA di ponsel atau komputer pengirim, buka **Panggilan Suara**, lalu tekan **Kirim ke Ruang TU**. PWA hanya menjadi pengirim TTS; pengumuman dibacakan oleh desktop TU. Untuk akses seperti aplikasi, di Chrome/Edge pilih **Install app** atau **Install this site as an app**.
 
-Supabase menangani autentikasi, antrean pengumuman, katalog metadata pustaka audio receiver, dan perintah kontrol audio remote. Jadwal dan berkas audio tetap tersimpan lokal di komputer receiver; Supabase tidak mengunggah isi file audio. Perintah remote memerlukan internet pada pengirim dan penerima. Teks pengumuman dikirim ke Supabase; receiver browser di komputer TU memakai Web Speech voice browser yang tersedia. Voice Google yang terlihat di Chrome pengirim tidak otomatis tersedia di Edge atau WebView desktop, jadi uji Chrome di komputer TU sebelum operasional. PWA harus tetap terbuka untuk menerima perintah—scheduler tray tetap berjalan terpisah di aplikasi desktop.
+Supabase menangani autentikasi, antrean pengumuman, katalog metadata pustaka audio receiver, dan perintah kontrol audio remote. Jadwal dan berkas audio tetap tersimpan lokal di komputer TU; Supabase tidak mengunggah isi file audio. Pengirim dan desktop receiver memerlukan internet. Teks pengumuman dikirim ke Supabase dan dibacakan oleh voice WebView yang tersedia di komputer TU; uji suara di desktop sebelum operasional. PWA pengirim tidak perlu dibiarkan terbuka setelah perintah terkirim.
 
 ## Menjalankan untuk pengembangan
 

@@ -156,6 +156,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
     setIsImportingLocal(true);
     try {
       const selected = await open({
+        title: 'Pilih file audio lokal',
         multiple: false,
         filters: [{ name: 'File audio', extensions: ['mp3', 'wav', 'm4a', 'ogg'] }],
       });
@@ -428,7 +429,7 @@ export const AudioPlayerView: React.FC<AudioPlayerViewProps> = ({
               <input
                 ref={localFileInput}
                 type="file"
-                accept="audio/mp3,audio/wav,audio/m4a,audio/ogg"
+                accept=".mp3,.wav,.m4a,.ogg,audio/mpeg,audio/wav,audio/mp4,audio/ogg"
                 onChange={handleFileInputChange}
                 className="hidden"
               />
