@@ -17,6 +17,225 @@ use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
 static TTS_AUDIO_COUNTER: AtomicU64 = AtomicU64::new(0);
+static SYSTEM_AUDIO_ALERT_STATE: Mutex<SystemAudioAlertState> = Mutex::new(SystemAudioAlertState {
+    request_id: 0,
+    previous_mute: None,
+});
+
+struct SystemAudioAlertState {
+    request_id: u64,
+    previous_mute: Option<bool>,
+}
+
+#[cfg(target_os = "windows")]
+fn system_audio_is_muted() -> Result<bool, String> {
+    use windows::Win32::Media::Audio::{
+        eConsole, eRender, IAudioEndpointVolume, IMMDeviceEnumerator, MMDeviceEnumerator,
+    };
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED,
+    };
+
+    struct ComGuard;
+    impl Drop for ComGuard {
+        fn drop(&mut self) {
+            unsafe { CoUninitialize() };
+        }
+    }
+
+    unsafe {
+        CoInitializeEx(None, COINIT_MULTITHREADED)
+            .ok()
+            .map_err(|error| format!("Tidak dapat menginisialisasi audio Windows: {error}"))?;
+        let _com = ComGuard;
+        let enumerator: IMMDeviceEnumerator =
+            CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|error| {
+                format!("Tidak dapat mengakses perangkat audio Windows: {error}")
+            })?;
+        let endpoint = enumerator
+            .GetDefaultAudioEndpoint(eRender, eConsole)
+            .map_err(|error| format!("Output audio default Windows tidak ditemukan: {error}"))?;
+        let volume: IAudioEndpointVolume = endpoint
+            .Activate(CLSCTX_ALL, None)
+            .map_err(|error| format!("Tidak dapat mengakses volume Windows: {error}"))?;
+        volume
+            .GetMute()
+            .map(|muted| muted.as_bool())
+            .map_err(|error| format!("Tidak dapat membaca status mute Windows: {error}"))
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn set_system_audio_muted(muted: bool) -> Result<(), String> {
+    use windows::Win32::Media::Audio::{
+        eConsole, eRender, IAudioEndpointVolume, IMMDeviceEnumerator, MMDeviceEnumerator,
+    };
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED,
+    };
+
+    struct ComGuard;
+    impl Drop for ComGuard {
+        fn drop(&mut self) {
+            unsafe { CoUninitialize() };
+        }
+    }
+
+    unsafe {
+        CoInitializeEx(None, COINIT_MULTITHREADED)
+            .ok()
+            .map_err(|error| format!("Tidak dapat menginisialisasi audio Windows: {error}"))?;
+        let _com = ComGuard;
+        let enumerator: IMMDeviceEnumerator =
+            CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|error| {
+                format!("Tidak dapat mengakses perangkat audio Windows: {error}")
+            })?;
+        let endpoint = enumerator
+            .GetDefaultAudioEndpoint(eRender, eConsole)
+            .map_err(|error| format!("Output audio default Windows tidak ditemukan: {error}"))?;
+        let volume: IAudioEndpointVolume = endpoint
+            .Activate(CLSCTX_ALL, None)
+            .map_err(|error| format!("Tidak dapat mengakses volume Windows: {error}"))?;
+        volume
+            .SetMute(muted, None)
+            .map_err(|error| format!("Tidak dapat mengubah status mute Windows: {error}"))
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn system_audio_is_muted() -> Result<bool, String> {
+    let output = Command::new("osascript")
+        .args(["-e", "output muted of (get volume settings)"])
+        .output()
+        .map_err(|error| format!("Tidak dapat memeriksa mute audio macOS: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "Gagal memeriksa mute audio macOS: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    match String::from_utf8_lossy(&output.stdout).trim() {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        value => Err(format!("Status mute audio macOS tidak dikenali: {value}")),
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn set_system_audio_muted(muted: bool) -> Result<(), String> {
+    let value = if muted { "true" } else { "false" };
+    let output = Command::new("osascript")
+        .args(["-e", &format!("set volume output muted {value}")])
+        .output()
+        .map_err(|error| format!("Tidak dapat mengubah mute audio macOS: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "Gagal mengubah mute audio macOS: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn system_audio_is_muted() -> Result<bool, String> {
+    if let Ok(output) = Command::new("wpctl")
+        .args(["get-volume", "@DEFAULT_AUDIO_SINK@"])
+        .output()
+    {
+        if output.status.success() {
+            return Ok(String::from_utf8_lossy(&output.stdout).contains("[MUTED]"));
+        }
+    }
+
+    let output = Command::new("pactl")
+        .args(["get-sink-mute", "@DEFAULT_SINK@"])
+        .output()
+        .map_err(|error| {
+            format!("wpctl/pactl tidak tersedia untuk mengatur mute audio: {error}")
+        })?;
+    if !output.status.success() {
+        return Err(format!(
+            "Gagal memeriksa mute audio Linux: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let result = String::from_utf8_lossy(&output.stdout);
+    if result.contains("yes") {
+        Ok(true)
+    } else if result.contains("no") {
+        Ok(false)
+    } else {
+        Err(format!(
+            "Status mute audio Linux tidak dikenali: {}",
+            result.trim()
+        ))
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn set_system_audio_muted(muted: bool) -> Result<(), String> {
+    let value = if muted { "1" } else { "0" };
+    if let Ok(output) = Command::new("wpctl")
+        .args(["set-mute", "@DEFAULT_AUDIO_SINK@", value])
+        .output()
+    {
+        if output.status.success() {
+            return Ok(());
+        }
+    }
+
+    let output = Command::new("pactl")
+        .args(["set-sink-mute", "@DEFAULT_SINK@", value])
+        .output()
+        .map_err(|error| {
+            format!("wpctl/pactl tidak tersedia untuk mengatur mute audio: {error}")
+        })?;
+    if !output.status.success() {
+        return Err(format!(
+            "Gagal mengubah mute audio Linux: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+fn system_audio_is_muted() -> Result<bool, String> {
+    Err("Kontrol mute sistem belum didukung pada platform ini.".to_string())
+}
+
+#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+fn set_system_audio_muted(_muted: bool) -> Result<(), String> {
+    Err("Kontrol mute sistem belum didukung pada platform ini.".to_string())
+}
+
+#[tauri::command]
+fn set_system_audio_alert(active: bool, request_id: u64) -> Result<(), String> {
+    let mut state = SYSTEM_AUDIO_ALERT_STATE
+        .lock()
+        .map_err(|error| format!("Status audio sistem tidak dapat diakses: {error}"))?;
+
+    if request_id < state.request_id {
+        return Ok(());
+    }
+    state.request_id = request_id;
+
+    if active {
+        if state.previous_mute.is_none() {
+            let was_muted = system_audio_is_muted()?;
+            if was_muted {
+                set_system_audio_muted(false)?;
+            }
+            state.previous_mute = Some(was_muted);
+        }
+    } else if let Some(was_muted) = state.previous_mute {
+        set_system_audio_muted(was_muted)?;
+        state.previous_mute = None;
+    }
+
+    Ok(())
+}
 
 fn tts_resource_path(app: &AppHandle, relative_path: &str) -> Result<PathBuf, String> {
     let resource_path = app
@@ -50,12 +269,12 @@ fn tts_resource_path(app: &AppHandle, relative_path: &str) -> Result<PathBuf, St
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScheduleItem {
     pub id: String,
-    pub time: String,          // "07:00"
-    pub title: String,         // "Masuk Jam Ke-1"
-    pub category: String,      // "reguler" | "ujian" | "ramadan"
-    pub days: Vec<String>,     // ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]
-    pub audio_file: String,    // "bel_masuk_3_nada.mp3"
-    pub audio_type: String,    // "standard" | "custom" | "tts"
+    pub time: String,       // "07:00"
+    pub title: String,      // "Masuk Jam Ke-1"
+    pub category: String,   // "reguler" | "ujian" | "ramadan"
+    pub days: Vec<String>,  // ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]
+    pub audio_file: String, // "bel_masuk_3_nada.mp3"
+    pub audio_type: String, // "standard" | "custom" | "tts"
     pub tts_text: Option<String>,
     pub active: bool,
 }
@@ -66,8 +285,8 @@ pub struct AudioTrack {
     pub title: String,
     pub duration: String,
     pub duration_seconds: u32,
-    pub category: String,      // "Senam Pagi", "Upacara & Lagu Wajib", "Relaksasi", "Nada Bel"
-    pub source: String,        // "local" | "youtube"
+    pub category: String, // "Senam Pagi", "Upacara & Lagu Wajib", "Relaksasi", "Nada Bel"
+    pub source: String,   // "local" | "youtube"
     pub source_url: Option<String>,
     pub file_path: String,
     pub date_added: String,
@@ -77,7 +296,7 @@ pub struct AudioTrack {
 pub struct TtsCallRecord {
     pub id: String,
     pub timestamp: String,
-    pub target_type: String,   // "Siswa", "Guru", "Karyawan", "Umum"
+    pub target_type: String, // "Siswa", "Guru", "Karyawan", "Umum"
     pub target_name: String,
     pub location: String,
     pub message: String,
@@ -108,7 +327,7 @@ pub struct HolidayEvent {
 pub struct SchoolSettings {
     pub school_name: String,
     pub academic_year: String,
-    pub active_mode: String,   // "reguler" | "ujian" | "ramadan"
+    pub active_mode: String, // "reguler" | "ujian" | "ramadan"
     pub master_volume: u8,
     #[serde(default = "default_music_duck_percent")]
     pub music_duck_percent: u8,
@@ -181,8 +400,7 @@ fn get_audio_dir(app: &AppHandle) -> Result<PathBuf, String> {
         .app_data_dir()
         .map_err(|e| format!("Tidak dapat menentukan folder data aplikasi: {e}"))?;
     path.push("audio");
-    fs::create_dir_all(&path)
-        .map_err(|e| format!("Tidak dapat membuat folder audio: {e}"))?;
+    fs::create_dir_all(&path).map_err(|e| format!("Tidak dapat membuat folder audio: {e}"))?;
     Ok(path)
 }
 
@@ -515,11 +733,7 @@ fn export_app_backup(
     }
     for schedule in &data.schedules {
         if schedule.audio_type == "custom" && !schedule.audio_file.is_empty() {
-            add_backup_audio(
-                &schedule.audio_file,
-                &mut audio_files,
-                &mut audio_paths,
-            )?;
+            add_backup_audio(&schedule.audio_file, &mut audio_files, &mut audio_paths)?;
         }
     }
 
@@ -531,8 +745,7 @@ fn export_app_backup(
     let destination = File::create(&destination_path)
         .map_err(|e| format!("Tidak dapat membuat file backup: {e}"))?;
     let mut archive = ZipWriter::new(destination);
-    let options = SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Deflated);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     archive
         .start_file("aurabell-backup.json", options)
         .map_err(|e| format!("Tidak dapat menulis metadata backup: {e}"))?;
@@ -568,8 +781,8 @@ fn restore_app_backup(
     source_path: String,
 ) -> Result<AppData, String> {
     let file = File::open(&source_path).map_err(|e| format!("Tidak dapat membuka backup: {e}"))?;
-    let mut archive =
-        ZipArchive::new(file).map_err(|e| format!("File bukan backup AuraBell.OS yang valid: {e}"))?;
+    let mut archive = ZipArchive::new(file)
+        .map_err(|e| format!("File bukan backup AuraBell.OS yang valid: {e}"))?;
     let mut metadata_file = archive
         .by_name("aurabell-backup.json")
         .map_err(|e| format!("Metadata backup tidak ditemukan: {e}"))?;
@@ -579,8 +792,8 @@ fn restore_app_backup(
         .map_err(|e| format!("Tidak dapat membaca metadata backup: {e}"))?;
     drop(metadata_file);
 
-    let mut backup: AppBackup = serde_json::from_slice(&metadata)
-        .map_err(|e| format!("Isi backup tidak valid: {e}"))?;
+    let mut backup: AppBackup =
+        serde_json::from_slice(&metadata).map_err(|e| format!("Isi backup tidak valid: {e}"))?;
     if backup.format_version != 1 {
         return Err(format!(
             "Versi backup {} tidak didukung.",
@@ -595,9 +808,19 @@ fn restore_app_backup(
         let extension = PathBuf::from(&audio.original_path)
             .extension()
             .and_then(|value| value.to_str())
-            .filter(|value| matches!(value.to_ascii_lowercase().as_str(), "mp3" | "wav" | "m4a" | "ogg"))
+            .filter(|value| {
+                matches!(
+                    value.to_ascii_lowercase().as_str(),
+                    "mp3" | "wav" | "m4a" | "ogg"
+                )
+            })
             .map(str::to_string)
-            .ok_or_else(|| format!("Format audio backup tidak didukung: {}", audio.original_path))?;
+            .ok_or_else(|| {
+                format!(
+                    "Format audio backup tidak didukung: {}",
+                    audio.original_path
+                )
+            })?;
         let destination = audio_dir.join(format!("{restore_id}_{index}.{extension}"));
         let mut archived_audio = archive
             .by_name(&audio.archive_path)
@@ -702,10 +925,17 @@ fn skip_scheduled_occurrence(
             && item.days.iter().any(|item_day| item_day == day)
     });
     if !schedule_exists {
-        return Err("Jadwal berikutnya sudah berubah. Muat ulang dashboard lalu coba lagi.".to_string());
+        return Err(
+            "Jadwal berikutnya sudah berubah. Muat ulang dashboard lalu coba lagi.".to_string(),
+        );
     }
 
-    let key = format!("{}|{}|{}", date.format("%Y-%m-%d"), time.format("%H:%M"), schedule_id);
+    let key = format!(
+        "{}|{}|{}",
+        date.format("%Y-%m-%d"),
+        time.format("%H:%M"),
+        schedule_id
+    );
     let mut pending_skip = state
         .pending_skip
         .lock()
@@ -1088,7 +1318,12 @@ async fn download_youtube_audio(
             &url,
         ])
         .output()
-        .map_err(|e| format!("Gagal menjalankan yt-dlp: {}. Pastikan yt-dlp & ffmpeg terinstal.", e))?;
+        .map_err(|e| {
+            format!(
+                "Gagal menjalankan yt-dlp: {}. Pastikan yt-dlp & ffmpeg terinstal.",
+                e
+            )
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -1119,7 +1354,10 @@ async fn download_youtube_audio(
     let saved_file = if !lines.is_empty() {
         lines[0].trim().to_string()
     } else {
-        target_dir.join("download.mp3").to_string_lossy().to_string()
+        target_dir
+            .join("download.mp3")
+            .to_string_lossy()
+            .to_string()
     };
 
     let new_track = AudioTrack {
@@ -1178,8 +1416,7 @@ fn import_local_file(
         chrono::Local::now().timestamp_millis(),
         filename
     ));
-    fs::copy(&source, &target_file)
-        .map_err(|e| format!("Tidak dapat menyalin file audio: {e}"))?;
+    fs::copy(&source, &target_file).map_err(|e| format!("Tidak dapat menyalin file audio: {e}"))?;
 
     let new_track = AudioTrack {
         id: format!("local-{}", chrono::Local::now().timestamp_millis()),
@@ -1252,10 +1489,8 @@ fn start_scheduler_thread(
                                 && item.time == current_hm
                                 && item.days.iter().any(|d| d == indonesian_day)
                             {
-                                let occurrence_key = format!(
-                                    "{}|{}|{}",
-                                    current_ymd, current_hm, item.id
-                                );
+                                let occurrence_key =
+                                    format!("{}|{}|{}", current_ymd, current_hm, item.id);
                                 let mut pending = pending_skip.lock().unwrap();
                                 if pending.as_deref() == Some(occurrence_key.as_str()) {
                                     *pending = None;
@@ -1350,6 +1585,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_app_data,
             save_app_data,
+            set_system_audio_alert,
             export_app_backup,
             restore_app_backup,
             trigger_bell_manual,
@@ -1370,6 +1606,11 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building AuraBell.OS")
         .run(|app_handle, event| {
+            if let tauri::RunEvent::Exit = &event {
+                if let Err(error) = set_system_audio_alert(false, u64::MAX) {
+                    log::error!("Gagal memulihkan mute audio sistem saat keluar: {error}");
+                }
+            }
             if let tauri::RunEvent::WindowEvent {
                 label,
                 event: tauri::WindowEvent::CloseRequested { api, .. },

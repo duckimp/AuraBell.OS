@@ -57,6 +57,8 @@ const SettingsView = lazy(() =>
   import('./components/SettingsView').then(({ SettingsView }) => ({ default: SettingsView }))
 );
 
+let audioAlertRequestId = 0;
+
 export function App({ onSignOut }: AppProps) {
   const isDesktop = isTauri();
   const [appData, setAppData] = useState<AppData | null>(null);
@@ -70,6 +72,7 @@ export function App({ onSignOut }: AppProps) {
   const activeHistoryIdRef = useRef<string | null>(null);
   const testHistoryIdRef = useRef<string | null>(null);
   const remoteAnnouncementFinishRef = useRef<((failureMessage?: string) => void) | null>(null);
+  const systemAudioAlertActiveRef = useRef(false);
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteLibraryPublishedRef = useRef(false);
   const pendingRemotePlaybackRef = useRef<{
@@ -205,6 +208,8 @@ export function App({ onSignOut }: AppProps) {
   // Set up bell trigger listeners
   useEffect(() => {
     const unlistenTrigger = tauriBridge.onBellTrigger((payload) => {
+      const requestId = ++audioAlertRequestId;
+      systemAudioAlertActiveRef.current = true;
       if (previewTimeoutRef.current) {
         clearTimeout(previewTimeoutRef.current);
         previewTimeoutRef.current = null;
@@ -228,52 +233,87 @@ export function App({ onSignOut }: AppProps) {
       const historyId = addBellHistory(payload.title, payload.time, source);
       activeHistoryIdRef.current = historyId;
       const finish = (status: BellHistoryRecord['status']) => {
+        if (requestId !== audioAlertRequestId) return;
         if (historyId) updateBellHistoryStatus(historyId, status);
         setIsBellPlaybackActive(false);
+        systemAudioAlertActiveRef.current = false;
+        void tauriBridge.setSystemAudioAlert(false, requestId).catch((error: unknown) => {
+          console.error('Gagal mengembalikan status mute audio sistem:', error);
+          setActiveBellError(`Gagal mengembalikan status mute audio sistem: ${String(error)}`);
+        });
       };
       const ttsText = payload.tts_text;
-      if (payload.is_emergency) {
-        if (payload.audio_file) {
-          audioEngine.startEmergencyAudio(payload.audio_file, (error) => {
-            console.error('Audio darurat kustom gagal, memakai sirene bawaan:', error);
+      const startPlayback = () => {
+        if (requestId !== audioAlertRequestId) return;
+        if (payload.is_emergency) {
+          if (payload.audio_file) {
+            audioEngine.startEmergencyAudio(payload.audio_file, (error) => {
+              console.error('Audio darurat kustom gagal, memakai sirene bawaan:', error);
+              audioEngine.startEmergencySiren();
+              alert('Audio darurat kustom gagal diputar. Sirene bawaan AuraBell.OS akan digunakan.');
+            });
+          } else {
             audioEngine.startEmergencySiren();
-            alert('Audio darurat kustom gagal diputar. Sirene bawaan AuraBell.OS akan digunakan.');
+          }
+        } else if (payload.audio_type === 'tts' && !payload.audio_file && ttsText) {
+          audioEngine.speakIndonesian(ttsText, {
+            gender: ttsVoiceGender,
+            engine: ttsEngine,
+            chime: 'none',
+            onEnd: () => finish('completed'),
+            onError: (error) => {
+              finish('failed');
+              alert(`Gagal memutar TTS bel: ${error}`);
+            },
           });
         } else {
-          audioEngine.startEmergencySiren();
+          audioEngine.playSoundFile(payload.audio_file, ttsText
+            ? () => audioEngine.speakIndonesian(ttsText, {
+                gender: ttsVoiceGender,
+                engine: ttsEngine,
+                chime: 'none',
+                onEnd: () => finish('completed'),
+                onError: (error) => {
+                  finish('failed');
+                  alert(`Gagal memutar TTS bel: ${error}`);
+                },
+              })
+            : () => finish('completed'),
+            { onError: (error) => {
+              finish('failed');
+              alert(`Gagal memutar audio bel: ${error}`);
+            } });
         }
-      } else if (payload.audio_type === 'tts' && !payload.audio_file && ttsText) {
-        audioEngine.speakIndonesian(ttsText, {
-          gender: ttsVoiceGender,
-          engine: ttsEngine,
-          chime: 'none',
-          onEnd: () => finish('completed'),
-          onError: (error) => {
-            finish('failed');
-            alert(`Gagal memutar TTS bel: ${error}`);
-          },
-        });
-      } else {
-        audioEngine.playSoundFile(payload.audio_file, ttsText
-          ? () => audioEngine.speakIndonesian(ttsText, {
-              gender: ttsVoiceGender,
-              engine: ttsEngine,
-              chime: 'none',
-              onEnd: () => finish('completed'),
-              onError: (error) => {
-                finish('failed');
-                alert(`Gagal memutar TTS bel: ${error}`);
-              },
-            })
-          : () => finish('completed'),
-          { onError: (error) => {
-            finish('failed');
-            alert(`Gagal memutar audio bel: ${error}`);
-          } });
-      }
+      };
+
+      void (async () => {
+        try {
+          await tauriBridge.setSystemAudioAlert(true, requestId);
+        } catch (error) {
+          console.error('Gagal membuka mute audio sistem:', error);
+          if (requestId === audioAlertRequestId) {
+            setActiveBellError(`Gagal membuka mute audio sistem: ${String(error)}`);
+          }
+        }
+        if (requestId !== audioAlertRequestId) {
+          if (!systemAudioAlertActiveRef.current) {
+            void tauriBridge.setSystemAudioAlert(false, audioAlertRequestId).catch((error: unknown) => {
+              console.error('Gagal mengembalikan status mute audio sistem:', error);
+            });
+          }
+          return;
+        }
+        startPlayback();
+      })();
     });
 
     const unlistenStopped = tauriBridge.onBellStopped(() => {
+      ++audioAlertRequestId;
+      systemAudioAlertActiveRef.current = false;
+      void tauriBridge.setSystemAudioAlert(false, audioAlertRequestId).catch((error: unknown) => {
+        console.error('Gagal mengembalikan status mute audio sistem:', error);
+        setActiveBellError(`Gagal mengembalikan status mute audio sistem: ${String(error)}`);
+      });
       setActiveBell(null);
       setIsBellPlaybackActive(false);
       if (activeHistoryIdRef.current) {
@@ -322,6 +362,8 @@ export function App({ onSignOut }: AppProps) {
         const command = await claimRemoteAnnouncement(commandId);
         if (!active || !command) return;
 
+        const requestId = ++audioAlertRequestId;
+        systemAudioAlertActiveRef.current = true;
         remoteAnnouncementFinishRef.current?.('Pengumuman sebelumnya dihentikan oleh pengumuman baru.');
         const time = new Date().toLocaleTimeString('id-ID', {
           hour: '2-digit',
@@ -345,18 +387,42 @@ export function App({ onSignOut }: AppProps) {
           if (remoteAnnouncementFinishRef.current === finish) {
             remoteAnnouncementFinishRef.current = null;
           }
-          setIsBellPlaybackActive(false);
-          if (failure) {
-            setActiveBellError(failure);
-          } else {
-            setActiveBell(null);
-            setActiveBellError(null);
+          if (requestId === audioAlertRequestId) {
+            setIsBellPlaybackActive(false);
+            systemAudioAlertActiveRef.current = false;
+            void tauriBridge.setSystemAudioAlert(false, requestId).catch((error: unknown) => {
+              console.error('Gagal mengembalikan status mute audio sistem:', error);
+              setActiveBellError(`Gagal mengembalikan status mute audio sistem: ${String(error)}`);
+            });
+            if (failure) {
+              setActiveBellError(failure);
+            } else {
+              setActiveBell(null);
+              setActiveBellError(null);
+            }
           }
           void completeRemoteAnnouncement(command.id, failure).catch((error: unknown) => {
             console.error('Gagal memperbarui status pengumuman remote:', error);
           });
         };
         remoteAnnouncementFinishRef.current = finish;
+        try {
+          await tauriBridge.setSystemAudioAlert(true, requestId);
+        } catch (error) {
+          console.error('Gagal membuka mute audio sistem:', error);
+          if (requestId === audioAlertRequestId) {
+            setActiveBellError(`Gagal membuka mute audio sistem: ${String(error)}`);
+          }
+        }
+        if (requestId !== audioAlertRequestId) {
+          if (!systemAudioAlertActiveRef.current) {
+            void tauriBridge.setSystemAudioAlert(false, audioAlertRequestId).catch((error: unknown) => {
+              console.error('Gagal mengembalikan status mute audio sistem:', error);
+            });
+          }
+          finish('Pengumuman dihentikan sebelum diputar.');
+          return;
+        }
         audioEngine.speakIndonesian(command.announcement_text, {
           gender: ttsVoiceGender,
           rate: 0.95,
@@ -604,7 +670,13 @@ export function App({ onSignOut }: AppProps) {
   };
 
   const handleStopBell = useCallback(() => {
+    ++audioAlertRequestId;
+    systemAudioAlertActiveRef.current = false;
     remoteAnnouncementFinishRef.current?.('Pengumuman dihentikan oleh operator.');
+    void tauriBridge.setSystemAudioAlert(false, audioAlertRequestId).catch((error: unknown) => {
+      console.error('Gagal mengembalikan status mute audio sistem:', error);
+      setActiveBellError(`Gagal mengembalikan status mute audio sistem: ${String(error)}`);
+    });
     setActiveBell(null);
     setActiveBellError(null);
     setIsBellPlaybackActive(false);
@@ -1136,10 +1208,7 @@ export function App({ onSignOut }: AppProps) {
       <ModalActiveBell
         payload={activeBell}
         errorMessage={activeBellError}
-        onClose={() => {
-          setActiveBell(null);
-          setActiveBellError(null);
-        }}
+        onClose={handleStopBell}
         onStopBell={handleStopBell}
       />
 

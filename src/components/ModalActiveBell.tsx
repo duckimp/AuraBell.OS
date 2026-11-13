@@ -116,7 +116,7 @@ export const ModalActiveBell: React.FC<ModalActiveBellProps> = ({
 
         {errorMessage && (
           <p role="alert" className="mb-4 w-full rounded-xl bg-error/10 px-4 py-3 text-left text-sm text-error">
-            Suara tidak berhasil diputar: {errorMessage}
+            Audio sistem: {errorMessage}
           </p>
         )}
 
@@ -141,10 +141,7 @@ export const ModalActiveBell: React.FC<ModalActiveBellProps> = ({
         {/* Action: Stop Bell */}
         <div className="flex items-center gap-3 w-full">
           <button
-            onClick={() => {
-              onStopBell();
-              onClose();
-            }}
+            onClick={onStopBell}
             className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-error hover:bg-red-700 text-white font-headline font-bold text-sm shadow-md transition-all cursor-pointer active:scale-95"
           >
             <Square className="w-4 h-4 fill-current" />

@@ -20,6 +20,7 @@ Catatan handoff untuk melanjutkan pengembangan lintas perangkat tersedia di [DEV
 - Kontrol remote untuk memilih dan memutar lagu dari pustaka komputer TU, termasuk jeda dan berhenti. File lagu tidak dikirim melalui Supabase.
 - Tampilan browser/PWA khusus untuk membuat dan mengirim panggilan TTS; PWA tidak menjadi receiver atau pemutar bel/audio senam.
 - Desktop TU menerima pengumuman TTS PWA dan perintah audio senam remote. Jadwal bel dan pemutaran audio senam tetap dijalankan desktop.
+- Saat bel/pengumuman desktop berbunyi, aplikasi meng-unmute output sistem sementara lalu memulihkan status mute sebelumnya saat suara selesai atau modal ditutup. Volume sistem tidak dinaikkan; di Linux diperlukan `wpctl` atau `pactl`.
 - Pengumuman remote yang dikirim dari PWA dibacakan oleh voice WebView yang tersedia di desktop TU.
 - Pemilihan suara TTS pria/wanita di PWA, mengikuti voice browser yang tersedia pada perangkat pengirim.
 - Playlist audio, pemutar dengan kontrol play/pause, seek, loop, dan volume.
