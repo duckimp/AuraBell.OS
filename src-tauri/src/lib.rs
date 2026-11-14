@@ -109,7 +109,7 @@ fn set_system_audio_muted(muted: bool) -> Result<(), String> {
             .Activate(CLSCTX_ALL, None)
             .map_err(|error| format!("Tidak dapat mengakses volume Windows: {error}"))?;
         volume
-            .SetMute(muted, None)
+            .SetMute(muted, std::ptr::null())
             .map_err(|error| format!("Tidak dapat mengubah status mute Windows: {error}"))
     }
 }
