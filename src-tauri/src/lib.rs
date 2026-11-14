@@ -39,8 +39,9 @@ struct SystemAudioAlertState {
 
 #[cfg(target_os = "windows")]
 fn system_audio_is_muted() -> Result<bool, String> {
+    use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
     use windows::Win32::Media::Audio::{
-        eConsole, eRender, IAudioEndpointVolume, IMMDeviceEnumerator, MMDeviceEnumerator,
+        eConsole, eRender, IMMDeviceEnumerator, MMDeviceEnumerator,
     };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED,
@@ -77,8 +78,9 @@ fn system_audio_is_muted() -> Result<bool, String> {
 
 #[cfg(target_os = "windows")]
 fn set_system_audio_muted(muted: bool) -> Result<(), String> {
+    use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
     use windows::Win32::Media::Audio::{
-        eConsole, eRender, IAudioEndpointVolume, IMMDeviceEnumerator, MMDeviceEnumerator,
+        eConsole, eRender, IMMDeviceEnumerator, MMDeviceEnumerator,
     };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED,
